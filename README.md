@@ -81,7 +81,7 @@ placed under your output `$workdir`.
     * Pronunciation dictionary mapping words to phone strings
     * Should include an entry for a special out-of-vocabulary (OOV) symbol in
       case there are words in your corpus not covered by the lexicon, e.g.
-      `<UNK> SPN`
+      `<unk> SPN`.
     * If you don't want to find OOV symbols in the final alignments, then
       make sure your lexicon contains some pronunciation for every word in
       your corpus! We don't (yet) try and train any g2p to fill in the gaps. 
@@ -99,6 +99,10 @@ placed under your output `$workdir`.
 
 These files will be used to prepare the `data/lang` directory in the first stage
 of `run.sh`, using `utils/prepare_lang.sh`.
+
+**Note:** By default we set the OOV symbol to be `<unk>`. If you choose a
+different symbol for your lexicon, then make sure to specify the `--oov` option
+when you run the main alignment script.
 
 ## Usage
 
