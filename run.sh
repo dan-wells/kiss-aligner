@@ -1,27 +1,36 @@
 #!/usr/bin/env bash
 
+# begin configuration section
 stage=1
 nj=4
-
+workdir=align
 data=
 meta=
-workdir=align
 oov="<unk>"
-
 boost_silence=1.0
+# end configuration section
 
-. ./cmd.sh
-. ./path.sh
-. parse_options.sh
+help_message="$0: Main alignment script for KISS Aligner
+Options:
+  --stage 1            # starting point for partial re-runs
+  --nj 4               # number of parallel jobs
+  --workdir align      # output directory for alignment files
+  --oov '<unk>'        # symbol to use for out-of-vocabulary items
+  --boost-silence 1.0  # factor to boost silence models (none by default)
+"
+
+. ./cmd.sh          # set train_cmd for parallel jobs
+. ./path.sh         # set PATH and environment variables
+. parse_options.sh  # parse command line options
 
 set -e
 
-# TODO: Some smart handling of input metadata filenames to name 
+# TODO: some smart handling of input metadata filenames to name 
 # align/data/$part subdirectories
-meta_base=${meta##*/}
-part=${meta%.*}
+#meta_base=${meta##*/}
+#part=${meta%.*}
 
-# TODO: Try and set up data/ and lang/ directories from input metadata file
+# TODO: try and set up data/ and lang/ directories from input metadata file
 # and lexicon in standard formats
 #if [ $stage -le 1 ]; then
 #  mkdir -p $workdir/{data/$part,lang}
@@ -29,9 +38,6 @@ part=${meta%.*}
 
 if [ $stage -le 1 ]; then
   # TODO: check data/train/text for OOV against data/local/dict/lexicon.txt
-  # For now, put everything together manually according to instructions here
-  # before running this step:
-  #   https://kaldi-asr.org/doc/data_prep.html
   utils/prepare_lang.sh $workdir/data/local/dict \
     "$oov" $workdir/data/local/lang $workdir/data/lang
 fi
@@ -50,9 +56,8 @@ if [ $stage -le 3 ]; then
   # monophone stages we select the shortest utterances, which should make it
   # easier to align the data from a flat start (but be careful about this in
   # case there are repeated prompts across speakers).
-
-  utils/validate_data_dir.sh $workdir/data/train
   # TODO: Make these split sizes configurable (will fail if not enough utterances)
+  utils/validate_data_dir.sh $workdir/data/train
   utils/subset_data_dir.sh --shortest $workdir/data/train 2000 $workdir/data/train_2kshort
   utils/subset_data_dir.sh $workdir/data/train 5000 $workdir/data/train_5k
   utils/subset_data_dir.sh $workdir/data/train 10000 $workdir/data/train_10k
@@ -80,13 +85,13 @@ if [ $stage -le 6 ]; then
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
     $workdir/data/train_10k $workdir/data/lang $workdir/exp/tri1_ali_10k $workdir/exp/tri2b
-  # Align a 10k utts subset using the tri2b model
+  # align a 10k utts subset using the tri2b model
   steps/align_si.sh  --nj $nj --cmd "$train_cmd" --use-graphs true \
     $workdir/data/train_10k $workdir/data/lang $workdir/exp/tri2b $workdir/exp/tri2b_ali_10k
 fi
 
 if [ $stage -le 7 ]; then
-  # Train tri3b, which is LDA+MLLT+SAT on 10k utts
+  # train tri3b, which is LDA+MLLT+SAT on 10k utts
   steps/train_sat.sh --cmd "$train_cmd" 2500 15000 \
     $workdir/data/train_10k $workdir/data/lang $workdir/exp/tri2b_ali_10k $workdir/exp/tri3b
   # align the entire train_clean_100 subset using the tri3b model

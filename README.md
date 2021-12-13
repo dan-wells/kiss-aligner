@@ -120,7 +120,9 @@ per-utterance CTM files at both word- and phone-level alignments, placed under
 
 If something goes wrong and you need to restart the script but don't want to
 redo previous work, then pass the `--stage` argument to `run.sh` specifying
-where you want to pick up.
+where you want to pick up from.
+
+Check `run.sh --help` to see all available options.
 
 **Note:** Not all utterances may be successfully aligned! In that case, there
 will simply be missing CTM files in the final output. You can find warnings
