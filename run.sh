@@ -16,8 +16,7 @@ Options:
   --nj 4               # number of parallel jobs
   --workdir align      # output directory for alignment files
   --oov '<unk>'        # symbol to use for out-of-vocabulary items
-  --boost-silence 1.0  # factor to boost silence models (none by default)
-"
+  --boost-silence 1.0  # factor to boost silence models (none by default)"
 
 . ./cmd.sh          # set train_cmd for parallel jobs
 . ./path.sh         # set PATH and environment variables
@@ -53,9 +52,9 @@ fi
 
 if [ $stage -le 3 ]; then
   # Make some small data subsets for early system-build stages. For the
-  # monophone stages we select the shortest utterances, which should make it
-  # easier to align the data from a flat start (but be careful about this in
-  # case there are repeated prompts across speakers).
+  # monophone stages we select the shortest utterances by duration, which
+  # should make it easier to align the data from a flat start (maybe be careful
+  # about this in case there are repeated prompts across speakers).
   # TODO: Make these split sizes configurable (will fail if not enough utterances)
   utils/validate_data_dir.sh $workdir/data/train
   utils/subset_data_dir.sh --shortest $workdir/data/train 2000 $workdir/data/train_2kshort
