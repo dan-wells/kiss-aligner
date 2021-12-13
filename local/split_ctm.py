@@ -3,25 +3,6 @@
 import os
 import sys
 
-
-def load_ctm(ctm_file):
-    with open(ctm_file) as inf:
-        prev_utt = ""
-        utts = {}
-        syms = []
-        for i, line in enumerate(inf):
-            utt, conf, start, dur, sym = line.strip().split()
-            if i == 0:
-                prev_utt = utt
-            if prev_utt != utt:
-                utts[prev_utt] = syms
-                syms = []
-            syms.append((sym, float(start), float(dur)))
-            prev_utt = utt
-        utts[prev_utt] = syms
-    return utts
-
-
 if __name__ == "__main__":
     try:
         _, ctm_file, split_ctm_dir = sys.argv
