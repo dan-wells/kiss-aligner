@@ -29,8 +29,9 @@ for spkr in *; do
                   s/[.,?!"]\b/ /g;
                   s/ [.,?!"] / /g;
                   s/ [,.?!"]$//;
-                  s/\)//g;
+                  s/[.,?!"]?\)//g;
                   s/^ //g;
+                  s/ $//g;
                   s/ +/ /g;' >> $workdir/transcripts
     echo $t >> $workdir/speakers
   done
