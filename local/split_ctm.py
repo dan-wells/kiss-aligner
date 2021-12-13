@@ -7,7 +7,7 @@ if __name__ == "__main__":
     try:
         _, ctm_file, split_ctm_dir = sys.argv
     except ValueError:
-        print("Usage: python split_ctm.py ctm_file split_ctm_dir")
+        print("Usage: python3 split_ctm.py ctm_file split_ctm_dir")
         sys.exit(1)
 
     os.makedirs(split_ctm_dir, exist_ok=True)
