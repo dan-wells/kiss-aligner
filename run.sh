@@ -65,7 +65,7 @@ if [ $stage -le 3 ]; then
 fi
 
 if [ $stage -le 4 ]; then
-  # train a monophone system
+  # train a monophone system on 2k short utts
   steps/train_mono.sh --nj $nj --cmd "$train_cmd" --boost-silence $boost_silence \
     $workdir/data/train_2kshort $workdir/data/lang $workdir/exp/mono
   # align next training subset
@@ -82,7 +82,7 @@ if [ $stage -le 5 ]; then
 fi
 
 if [ $stage -le 6 ]; then
-  # train an LDA+MLLT system.
+  # train an LDA+MLLT system on 10k utts
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
     $workdir/data/train_10k $workdir/data/lang $workdir/exp/tri1_ali_10k $workdir/exp/tri2b
@@ -102,7 +102,7 @@ if [ $stage -le 7 ]; then
 fi
 
 if [ $stage -le 8 ]; then
-  # train another LDA+MLLT+SAT system on the entire 100 hour subset
+  # train another LDA+MLLT+SAT system on the entire data set
   steps/train_sat.sh  --cmd "$train_cmd" 4200 40000 \
     $workdir/data/train $workdir/data/lang \
     $workdir/exp/tri3b_ali_train $workdir/exp/tri4b
