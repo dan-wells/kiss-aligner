@@ -8,6 +8,7 @@ data=
 meta=
 oov="<unk>"
 boost_silence=1.0
+strip_pos=false
 # end configuration section
 
 help_message="$0: Main alignment script for KISS Aligner
@@ -16,7 +17,8 @@ Options:
   --nj 4               # number of parallel jobs
   --workdir align      # output directory for alignment files
   --oov '<unk>'        # symbol to use for out-of-vocabulary items
-  --boost-silence 1.0  # factor to boost silence models (none by default)"
+  --boost-silence 1.0  # factor to boost silence models (none by default)
+  --strip-pos false    # strip word position labels from phone CTM outputs"
 
 . ./cmd.sh          # set train_cmd for parallel jobs
 . ./path.sh         # set PATH and environment variables
@@ -118,7 +120,8 @@ if [ $stage -le 9 ]; then
 fi
 
 if [ $stage -le 10 ]; then
-  # split CTM files for final per-utterance outpus
-  local/split_ctm.py $workdir/exp/tri4b_ali_train/ctm $workdir/word
-  local/split_ctm.py $workdir/exp/tri4b_ali_train/ctm.phone $workdir/phone
+  # split CTM files for final per-utterance outputs
+  [ $strip_pos == true ] && strip_pos="--strip-pos" || strip_pos=""
+  local/split_ctm.py $strip_pos $workdir/exp/tri4b_ali_train/ctm $workdir/word
+  local/split_ctm.py $strip_pos $workdir/exp/tri4b_ali_train/ctm.phone $workdir/phone
 fi

@@ -47,7 +47,6 @@ $cmd JOB=1:$nj $dir/log/get_phone_ctm.JOB.log \
   gzip -c '>' $dir/ctm.phone.JOB.gz || exit 1
 
 for n in `seq $nj`; do 
-  gunzip -c $dir/ctm.phone.$n.gz |
-  sed -E 's/_(B|I|E|S) $//' 
+  gunzip -c $dir/ctm.phone.$n.gz
 done > $dir/ctm.phone || exit 1;
 rm $dir/ctm.phone.*.gz
