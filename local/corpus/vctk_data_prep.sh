@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Sample script to prepare `data/train/*` files for Kaldi alignment over VCTK v0.80 data
+# Sample script to prepare `data/train/*` files for Kaldi alignment over VCTK v0.92 data
 
-vctk_dir=$HOME/data/VCTK-Corpus
+vctk_dir=$HOME/data/vctk-0.92
 workdir=align
 
 . ./path.sh
@@ -11,49 +11,59 @@ workdir=align
 train=$workdir/data/train
 mkdir -p $train
 
-set -e
+set -euo pipefail
 
-# Text transcripts are under VCTK-Corpus/txt
-pushd $vctk_dir/txt >/dev/null
-echo "Processing speaker utterances..."
-for spkr in *; do 
-  echo $spkr
-  pushd $spkr >/dev/null
-  for t in *.txt; do
-    t=${t%.txt}
-    # Basic text cleaning
-    cat $t.txt \
-      | sed -e '$a\' \
-      | tr 'A-Z' 'a-z' \
-      | perl -pe 's/\b[.,?!"]/ /g;
-                  s/[.,?!"]\b/ /g;
-                  s/ [.,?!"] / /g;
-                  s/ [,.?!"]$//;
-                  s/[.,?!"]?\)//g;
-                  s/^ //g;
-                  s/ $//g;
-                  s/ +/ /g;' >> $workdir/transcripts
-    echo $t >> $workdir/speakers
+transcripts=$workdir/transcripts
+speakers=$workdir/speakers
+utts=$workdir/utts
+
+mkdir -p $workdir
+[ -f $transcripts ] && rm $transcripts
+[ -f $speakers ] && rm $speakers
+[ -f $utts ] && rm $utts
+
+# Get audio files and text transcripts
+for spkr_dir in $vctk_dir/txt/*; do
+  spkr=${spkr_dir##*/}
+  echo "$spkr"
+  for txt in $spkr_dir/*; do
+    utt=${txt##*/}
+    utt=${utt%.txt}
+    audio="$vctk_dir/wav48_silence_trimmed/${spkr}/${utt}_mic1.flac"
+    if [ -f $audio ] && [ -f $txt ]; then
+      echo $spkr >> $speakers
+      echo $utt >> $utts
+      # some transcripts (p376) have no line terminators:
+      # this sed incantation adds them if missing
+      cat $txt | sed -e '$a\' >> $transcripts
+    fi
   done
-  popd >/dev/null
 done
-popd >/dev/null
+
+# Basic text cleaning
+cat $transcripts \
+  | tr 'A-Z' 'a-z' \
+  | perl -pe 's/\b[.,?!]/ /g;
+              s/[.,?!]\b/ /g;
+              s/ [-.,?!] / /g;
+              s/ [-.,?!]?$//g;
+              s/^[-.,?!] //g;
+              s/ +/ /g;' \
+  > ${transcripts}_clean
 
 # Combine utterance IDs and cleaned transcripts
-paste -d' ' $workdir/speakers $workdir/transcripts | sort > $train/text
+paste -d' ' $utts ${transcripts}_clean | sort > $train/text
 
-[ -f $train/wav.scp ] && rm $train/wav.scp
-[ -f $train/utt2spk ] && rm $train/utt2spk
-while read utt; do
-  # Write wav.scp with sox pipe to downsample audio to 16 kHz
-  printf "${utt} sox -G $vctk_dir/wav48/${utt%_*}/${utt}.wav -r 16k -t wav - |\n" \
-    >> $train/wav.scp
-  # Write utt2spk
-  printf "${utt} ${utt%_*}\n" >> $train/utt2spk
-done < <(sort $workdir/speakers)
-
-# Generate spk2utt from utt2spk
+# Combine utterance and speaker IDs
+paste -d' ' $utts $speakers | sort > $train/utt2spk
 utils/utt2spk_to_spk2utt.pl $train/utt2spk > $train/spk2utt
 
-# Delete temporary files
-rm $workdir/{speakers,transcripts}
+# Write wav.scp with sox pipe to convert flac to wav and downsample to 16 kHz
+[ -f $train/wav.scp ] && rm $train/wav.scp
+while read utt; do
+  audio="${vctk_dir}/wav48_silence_trimmed/${utt%_*}/${utt}_mic1.flac"
+  printf "$utt sox -G $audio -c 1 -r 16k -e signed-integer -t wav - |\n" \
+    >> $train/wav.scp
+done < <(sort $utts)
+
+rm $utts $speakers $transcripts ${transcripts}_clean
