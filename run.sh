@@ -135,6 +135,8 @@ if [ $stage -le 8 ]; then
   # align train_clean_100 using the tri4b model
   steps/align_fmllr.sh --nj $nj --cmd "$train_cmd" \
     $workdir/data/train $workdir/data/lang $workdir/exp/tri4b $workdir/exp/tri4b_ali_train
+  # check retried and failed utterances
+  local/check_alignments.sh $workdir/exp/tri4b_ali_train $workdir
 fi
 
 if [ $stage -le 9 ]; then
@@ -144,8 +146,6 @@ if [ $stage -le 9 ]; then
   local/get_phone_ctm.sh --cmd "$train_cmd" \
     $workdir/data/lang $workdir/exp/tri4b_ali_train
 fi
-
-# TODO: report on failed alignments and any remaining OOVs
 
 if [ $stage -le 10 ]; then
   # split CTM files for final per-utterance outputs

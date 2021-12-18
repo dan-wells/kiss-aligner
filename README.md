@@ -148,13 +148,10 @@ number of parallel threads to run and configuring on-the-fly audio conversion
 using Kaldi extended filenames.
 
 **Note:** Not all utterances may be successfully aligned! In that case, there
-will simply be missing CTM files in the final output. You can find warnings
-about any failed alignments in the logs:
-
-```sh
-grep "Did not successfully decode file" \
-  $workdir/exp/tri4b_ali_train/log/align_pass2.*.log
-```
+will simply be missing CTM files in the final output. Check
+`$workdir/failed_to_align.txt` for a list of failed utterances and their
+transcripts, and `$workdir/retried_alignment.txt` for those which were
+successfully aligned only after increasing beam width.
 
 ## Acknowledgments
 
