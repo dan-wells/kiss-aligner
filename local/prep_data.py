@@ -7,7 +7,7 @@ from collections import defaultdict
 
 
 RESAMPLE_TEMPLATES = {
-    'sox': "sox -G {} -c 1 -r {} -e signed-integer -t wav - |",
+    'sox': "sox -G {} -c 1 -r {} -b 16 -e signed-integer -t wav - |",
     'ffmpeg': "ffmpeg -v 24 -i {} -ac 1 -ar {} -acodec pcm_s16le -f wav - |",
     'kaldi': """--sample-frequency={}
 --allow-downsample=true
