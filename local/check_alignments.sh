@@ -7,7 +7,7 @@ workdir=$2
 echo "At utterance \(begin\|end\), \(SIL\|nonsilence\) accounts
 The optional-silence phone
 Assuming 100 frames per second
-Utterance-internal optional-silences" | grep -f - $ali_dir/log/analyze_alignments.log
+Utterance-internal optional-silences" | grep -f - $ali_dir/log/analyze_alignments.log | sed 's/, with duration.*//'
 
 # Check for retried and failed alignments
 retried=$workdir/retried_alignment.txt
