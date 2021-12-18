@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Sample script to prepare `data/lang/*` files for cmudict lexicon
+# Sample script to clean up cmudict lexicon
 
 workdir=align
 
