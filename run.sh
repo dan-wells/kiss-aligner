@@ -145,6 +145,8 @@ if [ $stage -le 9 ]; then
     $workdir/data/lang $workdir/exp/tri4b_ali_train
 fi
 
+# TODO: report on failed alignments and any remaining OOVs
+
 if [ $stage -le 10 ]; then
   # split CTM files for final per-utterance outputs
   [ $strip_pos == true ] && strip_pos="--strip-pos" || strip_pos=""

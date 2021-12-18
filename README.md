@@ -119,11 +119,19 @@ If you choose a different symbol for your lexicon, then make sure to specify the
 
 ## Usage
 
-Once the directories under `$workdir/data/train` and `$workdir/data/local/dict`
-have been set up, call the main run script like so:
+If you want to start everything off from a metadata file and lexicon, then
+minimally you can call the main run script like:
 
 ```sh
-run.sh --workdir $workdir
+run.sh --meta metadata.txt --lex lexicon.txt --audio-root /path/to/audio/files
+```
+
+If you have set up the directories under `$workdir/data/train` and
+`$workdir/data/local/dict` yourself, then you can skip the first stage of
+metadata processing:
+
+```sh
+run.sh --workdir $workdir --stage 1
 ```
 
 This should do all the necessary checking of the data files you have provided
@@ -135,7 +143,9 @@ If something goes wrong and you need to restart the script but don't want to
 redo previous work, then pass the `--stage` argument to `run.sh` specifying
 where you want to pick up from.
 
-Check `run.sh --help` to see all available options.
+Check `run.sh --help` to see all available options, including setting the
+number of parallel threads to run and configuring on-the-fly audio conversion
+using Kaldi extended filenames.
 
 **Note:** Not all utterances may be successfully aligned! In that case, there
 will simply be missing CTM files in the final output. You can find warnings
