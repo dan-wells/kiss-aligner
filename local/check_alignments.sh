@@ -3,6 +3,13 @@
 ali_dir=$1
 workdir=$2
 
+# Surface some useful statistics
+echo "At utterance \(begin\|end\), \(SIL\|nonsilence\) accounts
+The optional-silence phone
+Assuming 100 frames per second
+Utterance-internal optional-silences" | grep -f - $ali_dir/log/analyze_alignments.log
+
+# Check for retried and failed alignments
 retried=$workdir/retried_alignment.txt
 failed=$workdir/failed_to_align.txt
 
