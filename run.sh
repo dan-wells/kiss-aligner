@@ -1,50 +1,76 @@
 #!/usr/bin/env bash
 
 # begin configuration section
-stage=1
-nj=4
-workdir=align
-data=
 meta=
-oov="<unk>"
+lex=
+audio_root=
+workdir=align
+oov='<unk>,SPN'
+resample=0
+resample_method=sox
+mfcc_config=conf/mfcc.conf
+spkr_sep='-'
+spkr_in_wav=false
+meta_field_sep=' '
+lex_field_sep=' '
 boost_silence=1.0
 strip_pos=false
+stage=0
+nj=4
 # end configuration section
 
 help_message="$0: Main alignment script for KISS Aligner
 Options:
-  --stage 1            # starting point for partial re-runs
-  --nj 4               # number of parallel jobs
-  --workdir align      # output directory for alignment files
-  --oov '<unk>'        # symbol to use for out-of-vocabulary items
-  --boost-silence 1.0  # factor to boost silence models (none by default)
-  --strip-pos false    # strip word position labels from phone CTM outputs"
+  --meta                        # metadata file with audio paths and transcripts
+  --lex                         # lexicon file
+  --audio-root                  # longest common path for audio files in meta
+  --workdir align               # output directory for alignment files
+  --oov '<unk>,SPN'             # symbol to use for out-of-vocabulary items
+  --resample 16000              # convert audio to new sampling rate (off by default)
+  --resample-method sox         # tool to resample audio (sox|ffmpeg|kaldi)
+  --mfcc-config conf/mfcc.conf  # config file for mfcc extraction
+  --spkr-sep '-'                # character joining speaker prefix to utterance IDs
+  --spkr-in-wav false           # speaker prefix already part of audio filenames
+  --meta-field-sep ' '          # field separator in metadata file
+  --lex-field-sep ' '           # field separator in lexicon
+  --boost-silence 1.0           # factor to boost silence models (none by default)
+  --strip-pos false             # strip word position labels from phone CTM outputs
+  --stage 0                     # starting point for partial re-runs
+  --nj 4                        # number of parallel jobs"
 
 . ./cmd.sh          # set train_cmd for parallel jobs
 . ./path.sh         # set PATH and environment variables
 . parse_options.sh  # parse command line options
 
-set -e
+set -euo pipefail
 
 # TODO: some smart handling of input metadata filenames to name 
 # align/data/$part subdirectories
 #meta_base=${meta##*/}
 #part=${meta%.*}
 
-# TODO: try and set up data/ and lang/ directories from input metadata file
-# and lexicon in standard formats
-#if [ $stage -le 1 ]; then
-#  mkdir -p $workdir/{data/$part,lang}
-#fi
+if [ $stage -le 0 ]; then
+  # prepare data files from metadata input
+  [ $spkr_in_wav == true ] && spkr_in_wav="--spkr-in-wav" || spkr_in_wav=""
+  [ -n $meta ] && local/prep_data.py \
+    $meta $audio_root --workdir $workdir \
+    --resample $resample --resample-method $resample_method \
+    $spkr_in_wav --spkr-sep "$spkr_sep" --field-sep "$meta_field_sep"
+  # prepare dictionary files from lexicon input
+  [ -n $lex ] && local/prep_dict.py \
+    $lex --workdir $workdir --oov ${oov/,/ } \
+    --field-sep "$lex_field_sep"
+fi
 
 if [ $stage -le 1 ]; then
   # TODO: check data/train/text for OOV against data/local/dict/lexicon.txt
   utils/prepare_lang.sh $workdir/data/local/dict \
-    "$oov" $workdir/data/local/lang $workdir/data/lang
+    ${oov%,*} $workdir/data/local/lang $workdir/data/lang
 fi
 
 if [ $stage -le 2 ]; then
-  steps/make_mfcc.sh --cmd "$train_cmd" --nj $nj \
+  [ "$resample_method" == "kaldi" ] && mfcc_config=$workdir/conf/mfcc.conf
+  steps/make_mfcc.sh --cmd "$train_cmd" --nj $nj --mfcc-config $mfcc_config \
     $workdir/data/train $workdir/data/train/mfcc $workdir/data/train/mfcc
   steps/compute_cmvn_stats.sh $workdir/data/train \
     $workdir/data/train/mfcc $workdir/data/train/mfcc

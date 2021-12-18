@@ -28,11 +28,24 @@ To get started, you need to prepare your target dataset according to the
 instructions given [here](https://kaldi-asr.org/doc/data_prep.html).
 We recommend reading that page for full details of required files!
 
-**TODO:** Automate this process so that you need only provide a simple metadata
-file and lexicon in standard formats.
+One option is to create two files:
 
-See `local/corpus/vctk_data_prep.sh` and `local/lexicon/cmudict_prep.sh` for
-sample scripts building these directories.
+- Metadata file with lines like `<full-audio-path> <normalized-transcript>`
+- Pronunciation lexicon with lines like `<word> <phone-string>` (phones
+  separated by spaces)
+
+These files can be passed to `run.sh` using the `--meta` and `--lex` options,
+along with an `--audio-root` specifying the longest common sub-path of all audio
+files in the corpus. If audio files are in speaker-specific subdirectories, then
+we try and infer those speaker IDs as well as utterance IDs from the full audio
+filepath. See `local/corpus/vctk_make_meta.sh` for an example script creating
+such a metadata file, and `local/lexicon/cmudict_make_lex.sh` for one cleaning up a
+freely-available lexicon.
+
+Alternatively, you may want to create all the necessary files yourself.
+See `local/corpus/vctk_data_prep.sh` and `local/lexicon/cmudict_data_prep.sh` for
+sample scripts building these directories, and the descriptions of required
+files below.
 
 ### Training data
 
@@ -100,9 +113,9 @@ placed under your output `$workdir`.
 These files will be used to prepare the `data/lang` directory in the first stage
 of `run.sh`, using `utils/prepare_lang.sh`.
 
-**Note:** By default we set the OOV symbol to be `<unk>`. If you choose a
-different symbol for your lexicon, then make sure to specify the `--oov` option
-when you run the main alignment script.
+**Note:** By default we set the OOV symbol and pronunciation to be `<unk>,SPN`.
+If you choose a different symbol for your lexicon, then make sure to specify the
+`--oov` option when you run the main alignment script.
 
 ## Usage
 

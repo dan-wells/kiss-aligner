@@ -18,7 +18,8 @@ if [ ! -f $dict/cmudict.dict ]; then
     "https://raw.githubusercontent.com/cmusphinx/cmudict/master/cmudict.dict"
 fi
 
-# Strip annotations for pronunciation variants and stress markers
+# Strip annotations for pronunciation variants and stress markers,
+# and remove duplicate entries
 perl -pe 's/\(\d+\)//; s/[012]//g; s/ #.*$//;' $dict/cmudict.dict \
   | sort -u > $dict/lexicon.txt
 
