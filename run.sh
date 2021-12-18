@@ -6,6 +6,7 @@ lex=
 audio_root=
 workdir=align
 oov='<unk>,SPN'
+exit_on_oov=false
 resample=0
 resample_method=sox
 mfcc_config=conf/mfcc.conf
@@ -26,6 +27,7 @@ Options:
   --audio-root                  # longest common path for audio files in meta
   --workdir align               # output directory for alignment files
   --oov '<unk>,SPN'             # symbol to use for out-of-vocabulary items
+  --exit-on-oov false           # stop early if OOV items found in training data
   --resample 16000              # convert audio to new sampling rate (off by default)
   --resample-method sox         # tool to resample audio (sox|ffmpeg|kaldi)
   --mfcc-config conf/mfcc.conf  # config file for mfcc extraction
@@ -63,7 +65,10 @@ if [ $stage -le 0 ]; then
 fi
 
 if [ $stage -le 1 ]; then
-  # TODO: check data/train/text for OOV against data/local/dict/lexicon.txt
+  [ $exit_on_oov = true ] && warn_on_oov="--warn-on-oov" || warn_on_oov=""
+  local/check_oov.py --workdir $workdir \
+    $workdir/data/lang/words.txt $workdir/data/train/text \
+    $warn_on_oov || echo "Check OOV files: $workdir/oov_{words,utts}.txt" && exit 1
   utils/prepare_lang.sh $workdir/data/local/dict \
     ${oov%,*} $workdir/data/local/lang $workdir/data/lang
 fi
