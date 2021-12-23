@@ -16,6 +16,7 @@ meta_field_sep=' '
 lex_field_sep=' '
 boost_silence=1.0
 strip_pos=false
+textgrid_output=false
 stage=0
 nj=4
 # end configuration section
@@ -37,6 +38,7 @@ Options:
   --lex-field-sep ' '           # field separator in lexicon
   --boost-silence 1.0           # factor to boost silence models (none by default)
   --strip-pos false             # strip word position labels from phone CTM outputs
+  --textgrid-output false       # also write alignments to Praat TextGrid format
   --stage 0                     # starting point for partial re-runs
   --nj 4                        # number of parallel jobs"
 
@@ -167,4 +169,8 @@ if [ $stage -le 10 ]; then
   [ $strip_pos == true ] && strip_pos="--strip-pos" || strip_pos=""
   local/split_ctm.py $strip_pos $exp/tri4b_ali_train/ctm $workdir/word
   local/split_ctm.py $strip_pos $exp/tri4b_ali_train/ctm.phone $workdir/phone
+  # convert alignments to Praat TextGrid format
+  [ $textgrid_output == true ] && local/ctm_to_textgrid.py \
+    $exp/tri4b_ali_train/ctm $exp/tri4b_ali_train/ctm.phone $workdir/TextGrid \
+    --workdir $workdir
 fi

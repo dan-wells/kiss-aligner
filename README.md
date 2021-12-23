@@ -10,6 +10,10 @@ Bring your own:
 - Audio files with utterance-aligned text transcripts
 - Lexicon
 
+Optional:
+
+- Python 3 environment with [TextGridTools](https://github.com/hbuschme/TextGridTools)
+
 ## Environment setup
 
 Modify `path.sh` so that `KALDI_ROOT` points to your local Kaldi installation.
@@ -144,8 +148,10 @@ redo previous work, then pass the `--stage` argument to `run.sh` specifying
 where you want to pick up from.
 
 Check `run.sh --help` to see all available options, including setting the
-number of parallel threads to run and configuring on-the-fly audio conversion
-using Kaldi extended filenames.
+number of parallel threads to run, configuring on-the-fly audio conversion
+using Kaldi extended filenames, and writing alignments to Praat TextGrid files
+(requires an active Python 3 environment with [TextGridTools](https://github.com/hbuschme/TextGridTools)
+installed).
 
 **Note:** Not all utterances may be successfully aligned! In that case, there
 will simply be missing CTM files in the final output. Check
