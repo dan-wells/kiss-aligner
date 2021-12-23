@@ -70,12 +70,12 @@ if [ $stage -le 0 ]; then
 fi
 
 if [ $stage -le 1 ]; then
+  utils/prepare_lang.sh $data/local/dict \
+    ${oov%,*} $data/local/lang $data/lang
   [ $exit_on_oov = true ] && warn_on_oov="--warn-on-oov" || warn_on_oov=""
   local/check_oov.py --workdir $workdir \
     $data/lang/words.txt $data/train/text \
     $warn_on_oov || (echo "Check OOV files: $workdir/oov_{words,utts}.txt"; exit 1)
-  utils/prepare_lang.sh $data/local/dict \
-    ${oov%,*} $data/local/lang $data/lang
 fi
 
 if [ $stage -le 2 ]; then
