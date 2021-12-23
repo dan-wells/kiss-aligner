@@ -15,6 +15,7 @@ spkr_sep='-'
 spkr_in_wav=false
 meta_field_sep=' '
 lex_field_sep=' '
+split_per_utt=false
 boost_silence=1.0
 strip_pos=false
 textgrid_output=false
@@ -38,6 +39,7 @@ Options:
   --spkr-in-wav false           # speaker prefix already part of audio filenames
   --meta-field-sep ' '          # field separator in metadata file
   --lex-field-sep ' '           # field separator in lexicon
+  --split-per-utt false         # split data without regard to speaker labels
   --boost-silence 1.0           # factor to boost silence models (none by default)
   --strip-pos false             # strip word position labels from phone CTM outputs
   --textgrid-output false       # also write alignments to Praat TextGrid format
@@ -104,6 +106,14 @@ if [ $stage -le 3 ]; then
   utils/subset_data_dir.sh --shortest $data/train 2000 $data/train_2kshort
   utils/subset_data_dir.sh $data/train 5000 $data/train_5k
   utils/subset_data_dir.sh $data/train 10000 $data/train_10k
+  # pre-split data directories without reference to speaker labels (this keeps
+  # things running if n speakers < nj)
+  if [ $split_per_utt = true ]; then
+    for part in train train_2kshort train_5k train_10k; do
+      utils/split_data.sh --per-utt $data/$part $nj
+      mv $data/$part/split${nj}utt $data/$part/split${nj}
+    done
+  fi
 fi
 
 if [ $stage -le 4 ]; then
