@@ -7,6 +7,7 @@ audio_root=
 workdir=align
 oov='<unk>,SPN'
 exit_on_oov=false
+filter_oov=false
 resample=0
 resample_method=sox
 mfcc_config=conf/mfcc.conf
@@ -29,6 +30,7 @@ Options:
   --workdir align               # output directory for alignment files
   --oov '<unk>,SPN'             # symbol to use for out-of-vocabulary items
   --exit-on-oov false           # stop early if OOV items found in training data
+  --filter-oov false            # exclude utterances with OOV items from alignment
   --resample 16000              # convert audio to new sampling rate (off by default)
   --resample-method sox         # tool to resample audio (sox|ffmpeg|kaldi)
   --mfcc-config conf/mfcc.conf  # config file for mfcc extraction
@@ -76,6 +78,12 @@ if [ $stage -le 1 ]; then
   local/check_oov.py --workdir $workdir \
     $data/lang/words.txt $data/train/text \
     $warn_on_oov || (echo "Check OOV files: $workdir/oov_{words,utts}.txt"; exit 1)
+  if [ $filter_oov = true ]; then
+    mv $data/train/wav.scp $data/train/wav.scp.oov
+    utils/filter_scp.pl --exclude <(cat $workdir/oov_utts.txt) \
+      $data/train/wav.scp.oov > $data/train/wav.scp
+    utils/fix_data_dir.sh $data/train
+  fi
 fi
 
 if [ $stage -le 2 ]; then
@@ -85,8 +93,6 @@ if [ $stage -le 2 ]; then
     $data/train $data/train/mfcc $data/train/mfcc
   steps/compute_cmvn_stats.sh \
     $data/train $data/train/mfcc $data/train/mfcc
-  # clear out any missing data
-  utils/fix_data_dir.sh $data/train
 fi
 
 if [ $stage -le 3 ]; then
@@ -95,7 +101,6 @@ if [ $stage -le 3 ]; then
   # should make it easier to align the data from a flat start (maybe be careful
   # about this in case there are repeated prompts across speakers).
   # TODO: Make these split sizes configurable (will fail if not enough utterances)
-  utils/validate_data_dir.sh $data/train
   utils/subset_data_dir.sh --shortest $data/train 2000 $data/train_2kshort
   utils/subset_data_dir.sh $data/train 5000 $data/train_5k
   utils/subset_data_dir.sh $data/train 10000 $data/train_10k
