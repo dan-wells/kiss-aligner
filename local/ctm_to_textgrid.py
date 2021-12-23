@@ -109,25 +109,26 @@ def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL'):
     assert len(utts_word) == num_utts
     log_interval = int(num_utts / 20) + 1
     for i, utt in enumerate(utts_phone, 1):
+        utt_start = 0
+        utt_end = utt2dur[utt]
+        # nb. we do nothing about OOV items here -- they will be marked by
+        # whatever symbols Kaldi knows about, e.g. <unk> in words tier and
+        # SPN in phones tier
+        tgf = os.path.join(tg_dir, f"{utt}.TextGrid")
+        textgrid = TextGrid(tgf)
+        word_tier = make_tier("words", utts_word[utt], utt_start, utt_end, '<eps>')
+        textgrid.add_tier(word_tier)
+        phone_tier = make_tier("phones", utts_phone[utt], utt_start, utt_end, sil_phone)
+        textgrid.add_tier(phone_tier)
+        tgt.io.write_to_file(textgrid, tgf, format="long")
+
+        # progress bar
         if not (i - 1) % log_interval or i == num_utts:
             log_line_end = '\n' if i == num_utts else '\r'
             n_done = int(i / num_utts * 20)
             print("Creating TextGrids [{}{}] {}/{}".format(
                   n_done * '#', (20 - n_done) * '.', i, num_utts),
                   end=log_line_end)
-
-        tgf = os.path.join(tg_dir, f"{utt}.TextGrid")
-        textgrid = TextGrid(tgf)
-        utt_start = 0
-        utt_end = utt2dur[utt]
-        # nb. we do nothing about OOV items here -- they will be marked by
-        # whatever symbols Kaldi knows about, e.g. <unk> in words tier and
-        # SPN in phones tier
-        word_tier = make_tier("words", utts_word[utt], utt_start, utt_end, '<eps>')
-        textgrid.add_tier(word_tier)
-        phone_tier = make_tier("phones", utts_phone[utt], utt_start, utt_end, sil_phone)
-        textgrid.add_tier(phone_tier)
-        tgt.io.write_to_file(textgrid, tgf, format="long")
 
 
 if __name__ == '__main__':
