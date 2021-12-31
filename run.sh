@@ -187,5 +187,5 @@ if [ $stage -le 10 ]; then
   # convert alignments to Praat TextGrid format
   [ $textgrid_output == true ] && local/ctm_to_textgrid.py \
     $exp/tri4b_ali_train/ctm $exp/tri4b_ali_train/ctm.phone $workdir/TextGrid \
-    --workdir $workdir
+    --workdir $workdir --datadir $data/train
 fi

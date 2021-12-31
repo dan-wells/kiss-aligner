@@ -145,12 +145,14 @@ if __name__ == '__main__':
         help="Optional silence phone symbol")
     parser.add_argument('--workdir', type=str, default='./align',
         help="Working directory for alignment")
+    parser.add_argument('--datadir', type=str, default='./align/data/train',
+        help="Directory containing data to be aligned")
     args = parser.parse_args()
 
 
     utts_word = load_ctm(args.word_ctm)
     utts_phone = load_ctm(args.phone_ctm)
-    utt2dur = load_utt2dur(os.path.join(args.workdir, 'data/train/utt2dur'))
+    utt2dur = load_utt2dur(os.path.join(args.datadir, 'utt2dur'))
 
     os.makedirs(args.tg_dir, exist_ok=True)
     write_textgrids(utts_word, utts_phone, utt2dur, args.tg_dir, args.sil)
