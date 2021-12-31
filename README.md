@@ -159,6 +159,35 @@ will simply be missing CTM files in the final output. Check
 transcripts, and `$workdir/retried_alignment.txt` for those which were
 successfully aligned only after increasing beam width.
 
+## Segmenting long utterances
+
+If you have long-form audio with an approximate transcript (e.g. audiobook data)
+and an in-domain SAT acoustic model (e.g. from `--stage 8` of `run.sh`), then
+you can use `local/run_segment_long_utts.sh` to try and segment the audio into
+shorter chunks aligned with parts of the transcript.
+
+Prepare data files for the audio to be segmented as [above](#training-data).
+Your `text` file might contain just a few utterance IDs, each with very long
+transcripts -- for example, this would work for [LibriVox](https://librivox.org/) 
+recordings where each chapter is its own audio file, and where you have been
+able to split the corresponding text into chapters as well.
+
+The script will create a `wavs/` directory containing segmented audio files and
+a `text` file matching discovered utterance IDs with the corresponding portions
+of the original text. Optionally, it can output CTM or TextGrid alignments
+generated using the source acoustic model, though if you are able to generate a
+large amount of segmented data you may want to run forced alignment over it
+separately.
+
+**Note:** Segmentation using [this method](http://www.danielpovey.com/files/2017_asru_mgb3.pdf)
+works even with approximate transcripts. For example, the additional notices in
+LibriVox recordings compared to the expected book text are simply ignored, and
+excluded from the final set of discovered segments.
+
+**TODO:** Target output lengths for segmented utterances are currently
+hard-coded to lie between 5--15s, intended for use as training data for
+text-to-speech systems. Make this configurable!
+
 ## Acknowledgments
 
 - Sample Kaldi recipes in `egs/{librispeech,wsj}` which provided the basic
