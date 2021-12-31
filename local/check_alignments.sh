@@ -21,7 +21,7 @@ grep -Po "Did not successfully decode file \K.+(?=,)" $workdir/warnings > $workd
 grep -f $workdir/failed_utts -v $workdir/retried_utts | grep -f - $data/text > $retried
 num_retried=$(cat $retried | wc -l)
 if [ $num_retried -gt 0 ]; then
-  echo "Aligned $(cat $retried | wc -l) utterances on second attempt using wider beam"
+  echo "Aligned $num_retried utterances on second attempt using wider beam: $retried"
 else
   rm $retried
 fi
@@ -29,7 +29,7 @@ fi
 grep -f $workdir/failed_utts $data/text > $failed
 num_failed=$(cat $failed | wc -l)
 if [ $num_failed -gt 0 ]; then
-  echo "Failed to align $(cat $failed | wc -l) utterances"
+  echo "Failed to align $num_failed utterances: $failed"
 else
   rm $failed
 fi
