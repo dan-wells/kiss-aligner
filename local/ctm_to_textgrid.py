@@ -127,7 +127,7 @@ def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL'):
             log_line_end = '\n' if i == num_utts else '\r'
             n_done = int(i / num_utts * 20)
             print("Creating TextGrids [{}{}] {}/{}".format(
-                  n_done * '#', (20 - n_done) * '.', i, num_utts),
+                  n_done * '#', (20 - n_done) * '-', i, num_utts),
                   end=log_line_end)
 
 
