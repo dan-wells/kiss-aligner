@@ -167,7 +167,7 @@ if [ $stage -le 8 ]; then
   steps/align_fmllr.sh --nj $nj --cmd "$train_cmd" \
     $data/train $data/lang $exp/tri4b $exp/tri4b_ali_train
   # check retried and failed utterances
-  local/check_alignments.sh $exp/tri4b_ali_train $workdir
+  local/check_alignments.sh $exp/tri4b_ali_train $workdir $data/train
 fi
 
 if [ $stage -le 9 ]; then
