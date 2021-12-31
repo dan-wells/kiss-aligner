@@ -31,7 +31,7 @@ def check_oov(text_file, words):
 
     Returns:
       oov_utts: Dict mapping utterance IDs to tuples like (transcript, oov_count),
-        where transcripts have OOV items marked up: "this is an <UNKNOWN> word"
+        where transcripts have OOV items marked up: "this is an OOV_unknown word"
       oov_words: Set of OOV items
     """
     oov_utts = {}
@@ -43,7 +43,7 @@ def check_oov(text_file, words):
             for i, word in enumerate(text):
                 if word not in words:
                     oov_words.add(word)
-                    text[i] = "<{}>".format(word.upper())
+                    text[i] = "OOV_{}".format(word)
                     oov_count += 1
             if oov_count:
                 oov_utts[utt_id] = (' '.join(text), oov_count)
