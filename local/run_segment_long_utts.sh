@@ -56,6 +56,8 @@ fi
 
 if [ $stage -le 1 ]; then
   # prepare data to be segmented
+  # TODO: input may have very few utts, so we don't try and run many
+  # parallel jobs here -- could make that configurable, or use max(nj, # utts)
   steps/make_mfcc.sh --cmd "$train_cmd" --nj 1 \
     --mfcc-config $mfcc_config \
     $data $data/mfcc $data/mfcc
