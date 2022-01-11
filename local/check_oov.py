@@ -4,6 +4,7 @@ import argparse
 import locale
 import os
 import sys
+from collections import defaultdict
 
 
 def load_words(words_file):
@@ -32,22 +33,22 @@ def check_oov(text_file, words):
     Returns:
       oov_utts: Dict mapping utterance IDs to tuples like (transcript, oov_count),
         where transcripts have OOV items marked up: "this is an OOV_unknown word"
-      oov_words: Set of OOV items
+      oov_words: Dict mapping OOV words to count across transcripts
     """
     oov_utts = {}
-    oov_words = set()
+    oov_words = defaultdict(int)
     with open(text_file) as inf:
         for line in inf:
             utt_id, *text = line.strip().split()
             oov_count = 0
             for i, word in enumerate(text):
                 if word not in words:
-                    oov_words.add(word)
+                    oov_words[word] += 1
                     text[i] = "OOV_{}".format(word)
                     oov_count += 1
             if oov_count:
                 oov_utts[utt_id] = (' '.join(text), oov_count)
-    return oov_utts, oov_words
+    return oov_utts, dict(oov_words)
 
 
 def write_oov_utts(oov_utts, outfile):
@@ -65,7 +66,7 @@ def write_oov_utts(oov_utts, outfile):
             oov_total = 0
             for utt, (text, oov_count) in oov_utts.items():
                 outf.write("{} {}\n".format(utt, text))
-                oov_total += oov_count 
+                oov_total += oov_count
         print("Found {} out-of-vocabulary items across {} utterances".format(
             oov_total, len(oov_utts)))
 
@@ -74,13 +75,14 @@ def write_oov_words(oov_words, outfile):
     """Write listing of OOV items to file
 
     Args:
-      oov_words: Set of OOV items
+      oov_words: Dict counting occurrences of OOV words
       outfile: Output file path
     """
     if oov_words:
         with open(outfile, 'w') as outf:
-            for word in sorted(oov_words):
-                outf.write("{}\n".format(word))
+            for word, count in sorted(oov_words.items(),
+                                      key=lambda x: x[1], reverse=True):
+                outf.write("{} {}\n".format(word, count))
         print("Found {} unique out-of-vocabulary items".format(len(oov_words)))
 
 
