@@ -121,6 +121,12 @@ of `run.sh`, using `utils/prepare_lang.sh`.
 If you choose a different symbol for your lexicon, then make sure to specify the
 `--oov` option when you run the main alignment script.
 
+Utterances with OOV items can either be ignored during alignment using the
+`--filter-oov` argument to `run.sh`, or modeled using a phone-level LM by
+passing `--oov-phone-lm` (see discussion [here](https://kaldi-asr.org/doc/data_prep.html#data_prep_unknown)).
+The latter option can lead to a significant increase in decoding times if there
+are many OOV items in your data.
+
 ## Usage
 
 If you want to start everything off from a metadata file and lexicon, then

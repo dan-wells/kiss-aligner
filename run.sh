@@ -8,6 +8,7 @@ workdir=align
 oov='<unk>,SPN'
 exit_on_oov=false
 filter_oov=false
+oov_phone_lm=false
 resample=0
 resample_method=sox
 mfcc_config=conf/mfcc.conf
@@ -34,6 +35,7 @@ Options:
   --oov '<unk>,SPN'             # symbol to use for out-of-vocabulary items
   --exit-on-oov false           # stop early if OOV items found in training data
   --filter-oov false            # exclude utterances with OOV items from alignment
+  --oov-phone-lm false          # use phone-level LM for OOV items
   --resample 16000              # convert audio to new sampling rate (off by default)
   --resample-method sox         # tool to resample audio (sox|ffmpeg|kaldi)
   --mfcc-config conf/mfcc.conf  # config file for mfcc extraction
@@ -78,7 +80,14 @@ if [ $stage -le 0 ]; then
 fi
 
 if [ $stage -le 1 ]; then
-  utils/prepare_lang.sh $data/local/dict \
+  if [ $oov_phone_lm = true ]; then
+    utils/lang/make_unk_lm.sh --use-pocolm false \
+      $data/local/dict $exp/unk_lang_model
+    unk_fst="--unk-fst $exp/unk_lang_model/unk_fst.txt"
+  else
+    unk_fst=""
+  fi
+  utils/prepare_lang.sh $unk_fst $data/local/dict \
     ${oov%,*} $data/local/lang $data/lang
   [ $exit_on_oov = true ] && warn_on_oov="--warn-on-oov" || warn_on_oov=""
   local/check_oov.py --workdir $workdir \
