@@ -5,7 +5,8 @@ import os
 import re
 
 
-def load_ctm(ctm_file, strip_pos=False, sil_to_sp=False, sil_symbols=('SIL', 'SP')):
+def load_ctm(ctm_file, strip_pos=False, sil_to_sp=False, sil_symbols=('SIL', 'SP'),
+             enc='utf-8'):
     """Read Kaldi CTM file and split to per-utterance alignments
 
     Args:
@@ -23,7 +24,7 @@ def load_ctm(ctm_file, strip_pos=False, sil_to_sp=False, sil_symbols=('SIL', 'SP
     word_pos = re.compile(r"_(B|E|I|S)$")
     sil, sp = sil_symbols
     sil_nocase = sil.lower()
-    with open(ctm_file) as inf:
+    with open(ctm_file, encoding=enc) as inf:
         prev_utt = ""
         utts = {}
         tokens = []
@@ -60,7 +61,7 @@ def fix_sil(tokens, sil_symbols):
     return tokens
 
 
-def write_meta(utts, meta_out, sep=' ', audio_root=None):
+def write_meta(utts, meta_out, sep=' ', audio_root=None, enc='utf-8'):
     """Write output metadata file with utterance IDs and associated text
 
     Args:
@@ -70,7 +71,7 @@ def write_meta(utts, meta_out, sep=' ', audio_root=None):
       audio_root: If specified, convert utterance IDs (naively) to .wav
         filenames located under this directory
     """
-    with open(meta_out, 'w') as outf:
+    with open(meta_out, 'w', encoding=enc) as outf:
         for utt, text in utts.items():
             if audio_root is not None:
                 utt = os.path.join(audio_root, f"{utt}.wav")
@@ -95,7 +96,10 @@ if __name__ == '__main__':
         help="Symbols used for silence and short pauses")
     parser.add_argument('--audio-root', type=str, default=None,
         help="Convert utterance IDs to .wav filenames under this directory")
+    parser.add_argument('--file-enc', type=str, default='utf-8',
+        help="File encoding for input/output text")
     args = parser.parse_args()
 
-    utts = load_ctm(args.ctm_file, args.strip_pos, args.sil_to_sp, args.sil_symbols)
-    write_meta(utts, args.text_out, args.sep, args.audio_root)
+    utts = load_ctm(args.ctm_file, args.strip_pos, args.sil_to_sp, args.sil_symbols,
+                    args.file_enc)
+    write_meta(utts, args.text_out, args.sep, args.audio_root, args.file_enc)

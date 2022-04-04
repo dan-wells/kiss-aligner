@@ -22,6 +22,7 @@ boost_silence=1.0
 frame_shift=0.01
 strip_pos=false
 textgrid_output=false
+file_enc='utf-8'
 stage=0
 nj=4
 # end configuration section
@@ -49,6 +50,7 @@ Options:
   --frame-shift 0.01            # frame shift of extracted features
   --strip-pos false             # strip word position labels from phone CTM outputs
   --textgrid-output false       # also write alignments to Praat TextGrid format
+  --file-enc 'utf-8'            # text file encoding
   --stage 0                     # starting point for partial re-runs
   --nj 4                        # number of parallel jobs"
 
@@ -90,7 +92,7 @@ if [ $stage -le 1 ]; then
   utils/prepare_lang.sh $unk_fst $data/local/dict \
     ${oov%,*} $data/local/lang $data/lang
   [ $exit_on_oov = true ] && warn_on_oov="--warn-on-oov" || warn_on_oov=""
-  local/check_oov.py --workdir $workdir \
+  local/check_oov.py --workdir $workdir --file-enc $file_enc \
     $data/lang/words.txt $data/train/text \
     $warn_on_oov || (echo "Check OOV files: $workdir/oov_{words,utts}.txt"; exit 1)
   if [ $filter_oov = true ]; then
@@ -200,10 +202,12 @@ fi
 if [ $stage -le 10 ]; then
   # split CTM files for final per-utterance outputs
   [ $strip_pos == true ] && strip_pos="--strip-pos" || strip_pos=""
-  local/split_ctm.py $strip_pos $exp/tri4b_ali_train/ctm $workdir/word
-  local/split_ctm.py $strip_pos $exp/tri4b_ali_train/ctm.phone $workdir/phone
+  local/split_ctm.py $strip_pos --file-enc $file_enc \
+    $exp/tri4b_ali_train/ctm $workdir/word
+  local/split_ctm.py $strip_pos --file-enc $file_enc \
+    $exp/tri4b_ali_train/ctm.phone $workdir/phone
   # convert alignments to Praat TextGrid format
   [ $textgrid_output == true ] && local/ctm_to_textgrid.py \
     $exp/tri4b_ali_train/ctm $exp/tri4b_ali_train/ctm.phone $workdir/TextGrid \
-    --workdir $workdir --datadir $data/train
+    --workdir $workdir --datadir $data/train --file-enc $file_enc
 fi

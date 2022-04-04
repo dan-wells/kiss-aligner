@@ -7,7 +7,7 @@ import sys
 from collections import defaultdict
 
 
-def load_words(words_file):
+def load_words(words_file, enc='utf-8'):
     """Load vocabulary of words with known pronunciations
 
     Args:
@@ -17,13 +17,13 @@ def load_words(words_file):
       words: Set of known words
     """
     words = set()
-    with open(words_file) as inf:
+    with open(words_file, encoding=enc) as inf:
         for line in inf:
             words.add(line.strip().split()[0])
     return words
 
 
-def check_oov(text_file, words):
+def check_oov(text_file, words, enc='utf-8'):
     """Find utterances with out-of-vocabulary items in transcripts
 
     Args:
@@ -37,7 +37,7 @@ def check_oov(text_file, words):
     """
     oov_utts = {}
     oov_words = defaultdict(int)
-    with open(text_file) as inf:
+    with open(text_file, encoding=enc) as inf:
         for line in inf:
             utt_id, *text = line.strip().split()
             oov_count = 0
@@ -51,7 +51,7 @@ def check_oov(text_file, words):
     return oov_utts, dict(oov_words)
 
 
-def write_oov_utts(oov_utts, outfile):
+def write_oov_utts(oov_utts, outfile, enc='utf-8'):
     """Write listing of utterances containing OOV items to file
 
     Args:
@@ -62,7 +62,7 @@ def write_oov_utts(oov_utts, outfile):
     # sort as LC_ALL=C for compatibility with Kaldi sorting
     locale.setlocale(locale.LC_ALL, 'C')
     if oov_utts:
-        with open(outfile, 'w') as outf:
+        with open(outfile, 'w', encoding=enc) as outf:
             oov_total = 0
             for utt, (text, oov_count) in oov_utts.items():
                 outf.write("{} {}\n".format(utt, text))
@@ -71,7 +71,7 @@ def write_oov_utts(oov_utts, outfile):
             oov_total, len(oov_utts)))
 
 
-def write_oov_words(oov_words, outfile):
+def write_oov_words(oov_words, outfile, enc='utf-8'):
     """Write listing of OOV items to file
 
     Args:
@@ -79,7 +79,7 @@ def write_oov_words(oov_words, outfile):
       outfile: Output file path
     """
     if oov_words:
-        with open(outfile, 'w') as outf:
+        with open(outfile, 'w', encoding=enc) as outf:
             for word, count in sorted(oov_words.items(),
                                       key=lambda x: x[1], reverse=True):
                 outf.write("{} {}\n".format(word, count))
@@ -98,13 +98,15 @@ if __name__ == '__main__':
         help="Return non-zero exit status if OOV items found")
     parser.add_argument('--workdir', type=str, default='align',
         help="Working directory for alignment")
+    parser.add_argument('--file-enc', type=str, default='utf-8',
+        help="File encoding for input/output text")
     args = parser.parse_args()
 
-    words = load_words(args.words)
-    oov_utts, oov_words = check_oov(args.text, words)
+    words = load_words(args.words, args.file_enc)
+    oov_utts, oov_words = check_oov(args.text, words, args.file_enc)
 
-    write_oov_utts(oov_utts, os.path.join(args.workdir, 'oov_utts.txt'))
-    write_oov_words(oov_words, os.path.join(args.workdir, 'oov_words.txt'))
+    write_oov_utts(oov_utts, os.path.join(args.workdir, 'oov_utts.txt'), args.file_enc)
+    write_oov_words(oov_words, os.path.join(args.workdir, 'oov_words.txt'), args.file_enc)
 
     # non-zero exit to abort aligner run
     if oov_words and args.warn_on_oov:

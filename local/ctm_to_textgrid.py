@@ -8,7 +8,7 @@ import tgt
 from tgt.core import TextGrid, IntervalTier, Interval
 
 
-def load_ctm(ctm_file):
+def load_ctm(ctm_file, enc='utf-8'):
     """Read Kaldi CTM file and split to per-utterance alignments
 
     Args:
@@ -18,7 +18,7 @@ def load_ctm(ctm_file):
       utts: Dict mapping utterance IDs to alignments represented as lists of
         (token, start_time, duration) tuples
     """
-    with open(ctm_file) as inf:
+    with open(ctm_file, encoding=enc) as inf:
         prev_utt = ""
         utts = {}
         tokens = []
@@ -148,10 +148,12 @@ if __name__ == '__main__':
         help="Working directory for alignment")
     parser.add_argument('--datadir', type=str, default='./align/data/train',
         help="Directory containing data to be aligned")
+    parser.add_argument('--file-enc', type=str, default='utf-8',
+        help="File encoding for input/output text")
     args = parser.parse_args()
 
 
-    utts_word = load_ctm(args.word_ctm)
+    utts_word = load_ctm(args.word_ctm, args.file_enc)
     utts_phone = load_ctm(args.phone_ctm)
     utt2dur = load_utt2dur(os.path.join(args.datadir, 'utt2dur'))
 
