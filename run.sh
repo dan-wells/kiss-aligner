@@ -17,6 +17,7 @@ meta_field_sep=' '
 lex_field_sep=' '
 split_per_utt=false
 boost_silence=1.0
+frame_shift=0.01
 strip_pos=false
 textgrid_output=false
 stage=0
@@ -41,6 +42,7 @@ Options:
   --lex-field-sep ' '           # field separator in lexicon
   --split-per-utt false         # split data without regard to speaker labels
   --boost-silence 1.0           # factor to boost silence models (none by default)
+  --frame-shift 0.01            # frame shift of extracted features
   --strip-pos false             # strip word position labels from phone CTM outputs
   --textgrid-output false       # also write alignments to Praat TextGrid format
   --stage 0                     # starting point for partial re-runs
@@ -175,9 +177,10 @@ fi
 if [ $stage -le 9 ]; then
   # get word- and phone-level CTM files from final alignments
   steps/get_train_ctm.sh --cmd "$train_cmd" \
-    --print-silence true \
+    --frame-shift $frame_shift --print-silence true \
     $data/train $data/lang $exp/tri4b_ali_train
   local/get_phone_ctm.sh --cmd "$train_cmd" \
+    --frame-shift $frame_shift \
     $data/lang $exp/tri4b_ali_train
 fi
 

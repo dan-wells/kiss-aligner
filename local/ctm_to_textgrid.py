@@ -86,7 +86,8 @@ def make_tier(tier_name, alignment, utt_start, utt_end, sil):
             # to Kaldi's frame shift
             end = utt_end
         else:
-            end = round(start + dur, 2)
+            # ms precision
+            end = round(start + dur, 3)
         if tier_name == 'phones':
             text = re.sub(word_pos, '', text)
         intervals.append(Interval(start, end, text))
