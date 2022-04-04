@@ -9,7 +9,6 @@ export LC_ALL=C
 set -euo pipefail
 
 type -p shorten >/dev/null || (echo "shorten not found, exiting"; exit 1)
-type -p ch_wave >/dev/null || (echo "ch_wave not found, exiting"; exit 1)
 
 mkdir -p $DATA
 mkdir -p $DICT
@@ -34,7 +33,7 @@ for spkr_dir in $GP_FR/adc/*; do
     utt=${utt##*/}
     # decompress audio and add WAV headers
     wav=$GP_FR/wav/$spkr/${utt}.wav
-    shorten -x $shn - | ch_wave -f 16000 -itype raw -otype riff -o $wav
+    shorten -x $shn - | sox -t raw -r 16k -b 16 -e signed-integer --endian little - $wav
     # write data files
     printf "$utt $wav\n" >> $DATA/wav.scp
     printf "$utt $spkr\n" >> $DATA/utt2spk
