@@ -64,26 +64,24 @@ utils/fix_data_dir.sh $DATA
 # prepare lexicon files
 LEX=$GP/Dictionaries/FR/French-GPDict.txt
 
-# convert to utf-8, strip pronunciation variant labels, delete
-# /h/ phones, squash multiple spaces and remove duplicate entries
-iconv -f ISO-8859-1 -t UTF-8 $LEX | \
-  perl -pe 's/\(\d+\)//; s/ h / /g; s/([ \t])+/ /g;' | \
-  sort -u > $DICT/lexicon.txt
+# map phone set to common GlobalPhone symbols
+python3 local/corpus/globalphone/prep_gp_lex.py \
+  $LEX FR $DICT/lexicon.txt --phone_set gp
 
 # extract phone symbols
 cut -d' ' -f2- $DICT/lexicon.txt | \
   tr ' ' '\n' | grep -v '^$' | sort -u > $DICT/nonsilence_phones.txt
 
 # make sure we have appropriate entries for various elided forms
-# e.g. article l'
-echo "l L
-d D
-c S
-s S
-n N
-j ZH
-t T
-m M" >> $DICT/lexicon.txt
+# e.g. article l' (again using mapped GlobalPhone symbols)
+echo "l l
+d d
+c s
+s s
+n n
+j Z
+t t
+m m" >> $DICT/lexicon.txt
 # add pronunciation for oov symbol
 echo "<unk> SPN" >> $DICT/lexicon.txt
 
