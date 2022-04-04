@@ -95,6 +95,8 @@ if [ $stage -le 2 ]; then
     $data/train $data/train/mfcc $data/train/mfcc
   steps/compute_cmvn_stats.sh \
     $data/train $data/train/mfcc $data/train/mfcc
+  utils/fix_data_dir.sh $data/train
+  local/validate_data_dir.sh $data/train
 fi
 
 if [ $stage -le 3 ]; then
