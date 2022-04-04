@@ -143,6 +143,11 @@ and continue to run the full alignment process! The final outputs will be
 per-utterance CTM files at both word- and phone-level alignments, placed under
 `$workdir/{word,phone}`.
 
+**Note:** Acoustic model training proceeds in stages on increasing subsets of
+the provided training data. If you have fewer than 10,000 utterances, make sure
+to reduce the size of the final data partition (at least) using the `--splits`
+argument to `run.sh`.
+
 If something goes wrong and you need to restart the script but don't want to
 redo previous work, then pass the `--stage` argument to `run.sh` specifying
 where you want to pick up from.

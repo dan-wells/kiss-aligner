@@ -15,6 +15,7 @@ spkr_sep='-'
 spkr_in_wav=false
 meta_field_sep=' '
 lex_field_sep=' '
+splits='2000,5000,10000'
 split_per_utt=false
 boost_silence=1.0
 frame_shift=0.01
@@ -40,6 +41,7 @@ Options:
   --spkr-in-wav false           # speaker prefix already part of audio filenames
   --meta-field-sep ' '          # field separator in metadata file
   --lex-field-sep ' '           # field separator in lexicon
+  --splits 2000,5000,10000      # number of utterances to split each data partition
   --split-per-utt false         # split data without regard to speaker labels
   --boost-silence 1.0           # factor to boost silence models (none by default)
   --frame-shift 0.01            # frame shift of extracted features
@@ -106,14 +108,16 @@ if [ $stage -le 3 ]; then
   # monophone stages we select the shortest utterances by duration, which
   # should make it easier to align the data from a flat start (maybe be careful
   # about this in case there are repeated prompts across speakers).
-  # TODO: Make these split sizes configurable (will fail if not enough utterances)
-  utils/subset_data_dir.sh --shortest $data/train 2000 $data/train_2kshort
-  utils/subset_data_dir.sh $data/train 5000 $data/train_5k
-  utils/subset_data_dir.sh $data/train 10000 $data/train_10k
+  # There must be at least $long utterances in the full train data, otherwise
+  # utils/split_data.sh will fail.
+  IFS=, read short mid long <<< "$splits"
+  utils/subset_data_dir.sh --shortest $data/train $short $data/train_${short}_short
+  utils/subset_data_dir.sh $data/train $mid $data/train_$mid
+  utils/subset_data_dir.sh $data/train $long $data/train_$long
   # pre-split data directories without reference to speaker labels (this keeps
   # things running if n speakers < nj)
   if [ $split_per_utt = true ]; then
-    for part in train train_2kshort train_5k train_10k; do
+    for part in train train_${short}_short train_$mid train_$long; do
       utils/split_data.sh --per-utt $data/$part $nj
       mv $data/$part/split${nj}utt $data/$part/split${nj}
     done
@@ -124,11 +128,11 @@ if [ $stage -le 4 ]; then
   # train a monophone system on 2k short utts
   steps/train_mono.sh --nj $nj --cmd "$train_cmd" \
     --boost-silence $boost_silence \
-    $data/train_2kshort $data/lang $exp/mono
+    $data/train_${short}_short $data/lang $exp/mono
   # align next training subset
   steps/align_si.sh --nj $nj --cmd "$train_cmd" \
     --boost-silence $boost_silence \
-    $data/train_5k $data/lang $exp/mono $exp/mono_ali_5k
+    $data/train_$mid $data/lang $exp/mono $exp/mono_ali_$mid
 fi
 
 if [ $stage -le 5 ]; then
@@ -136,27 +140,27 @@ if [ $stage -le 5 ]; then
   steps/train_deltas.sh --cmd "$train_cmd" \
     --boost-silence $boost_silence \
     2000 10000 \
-    $data/train_5k $data/lang $exp/mono_ali_5k $exp/tri1
+    $data/train_$mid $data/lang $exp/mono_ali_$mid $exp/tri1
   steps/align_si.sh --nj $nj --cmd "$train_cmd" \
-    $data/train_10k $data/lang $exp/tri1 $exp/tri1_ali_10k
+    $data/train_$long $data/lang $exp/tri1 $exp/tri1_ali_$long
 fi
 
 if [ $stage -le 6 ]; then
   # train an LDA+MLLT system on 10k utts
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
-    $data/train_10k $data/lang $exp/tri1_ali_10k $exp/tri2b
+    $data/train_$long $data/lang $exp/tri1_ali_$long $exp/tri2b
   # align a 10k utts subset using the tri2b model
   steps/align_si.sh  --nj $nj --cmd "$train_cmd" \
     --use-graphs true \
-    $data/train_10k $data/lang $exp/tri2b $exp/tri2b_ali_10k
+    $data/train_$long $data/lang $exp/tri2b $exp/tri2b_ali_$long
 fi
 
 if [ $stage -le 7 ]; then
   # train tri3b, which is LDA+MLLT+SAT on 10k utts
   steps/train_sat.sh --cmd "$train_cmd" \
     2500 15000 \
-    $data/train_10k $data/lang $exp/tri2b_ali_10k $exp/tri3b
+    $data/train_$long $data/lang $exp/tri2b_ali_$long $exp/tri3b
   # align the entire train_clean_100 subset using the tri3b model
   steps/align_fmllr.sh --nj $nj --cmd "$train_cmd" \
     $data/train $data/lang $exp/tri3b $exp/tri3b_ali_train
