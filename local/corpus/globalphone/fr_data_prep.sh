@@ -23,10 +23,10 @@ mkdir -p $DICT
 # but can't work out how to tell it that it's uncompressing to raw PCM.
 # Might be nice to figure that out and put a pipe in wav.scp rather than
 # converting all utterances to WAV here
-printf "Speaker:\n"
+printf "Processing data for speaker:\n"
 for spkr_dir in $GP_FR/adc/*; do
   export spkr=FR${spkr_dir##*/}
-  printf "\t$spkr\n"
+  printf "  $spkr\n"
   mkdir -p $GP_FR/wav/$spkr
   for shn in $spkr_dir/*; do
     utt=${shn%%.*}
@@ -39,6 +39,7 @@ for spkr_dir in $GP_FR/adc/*; do
     printf "$utt $spkr\n" >> $DATA/utt2spk
   done
   # get text from re-encoded per-speaker .trl files
+  # need to lowercase and remove all punctuation to match lexicon
   iconv -f ISO-8859-1 -t UTF-8 $GP_FR/trl/${spkr}.trl | \
     perl -ne '
      chomp;
