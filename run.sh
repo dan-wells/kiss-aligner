@@ -147,7 +147,7 @@ if [ $stage -le 4 ]; then
 fi
 
 if [ $stage -le 5 ]; then
-  # train a first delta + delta-delta triphone system on a subset of 5000 utterances
+  # train a first delta + delta-delta triphone system on a subset of 5k utterances
   steps/train_deltas.sh --cmd "$train_cmd" \
     --boost-silence $boost_silence \
     2000 10000 \
@@ -172,7 +172,7 @@ if [ $stage -le 7 ]; then
   steps/train_sat.sh --cmd "$train_cmd" \
     2500 15000 \
     $data/train_$long $data/lang $exp/tri2b_ali_$long $exp/tri3b
-  # align the entire train_clean_100 subset using the tri3b model
+  # align all train data using the tri3b model
   steps/align_fmllr.sh --nj $nj --cmd "$train_cmd" \
     $data/train $data/lang $exp/tri3b $exp/tri3b_ali_train
 fi
@@ -182,7 +182,7 @@ if [ $stage -le 8 ]; then
   steps/train_sat.sh  --cmd "$train_cmd" \
     4200 40000 \
     $data/train $data/lang $exp/tri3b_ali_train $exp/tri4b
-  # align train_clean_100 using the tri4b model
+  # align all train data using the tri4b model
   steps/align_fmllr.sh --nj $nj --cmd "$train_cmd" \
     $data/train $data/lang $exp/tri4b $exp/tri4b_ali_train
   # check retried and failed utterances
