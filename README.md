@@ -146,7 +146,7 @@ run.sh --workdir $workdir --stage 1
 
 This should do all the necessary checking of the data files you have provided
 and continue to run the full alignment process! The final outputs will be
-per-utterance CTM files at both word- and phone-level alignments, placed under
+per-utterance CTM files for both word- and phone-level alignments, placed under
 `$workdir/{word,phone}`.
 
 **Note:** Acoustic model training proceeds in stages on increasing subsets of
