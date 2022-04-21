@@ -48,6 +48,7 @@ cat $transcripts \
               s/ [-.,?!] / /g;
               s/ [-.,?!]?$//g;
               s/^[-.,?!] //g;
+              s/`\t//g;
               s/ +/ /g;' \
   > ${transcripts}_clean
 
