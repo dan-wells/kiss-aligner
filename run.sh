@@ -51,6 +51,9 @@ Options:
   --split-per-utt false         # split data without regard to speaker labels
   --boost-silence 1.0           # factor to boost silence models (none by default)
   --frame-shift 0.01            # frame shift of extracted features
+  --beam 10                     # initial beam width for training and alignment
+  --retry-beam 40               # retry beam width for failed alignments (0 to disable)
+  --careful false               # enable careful alignment to better detect failures
   --strip-pos false             # strip word position labels from phone CTM outputs
   --textgrid-output false       # also write alignments to Praat TextGrid format
   --file-enc 'utf-8'            # text file encoding
