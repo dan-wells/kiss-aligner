@@ -20,6 +20,9 @@ splits='2000,5000,10000'
 split_per_utt=false
 boost_silence=1.0
 frame_shift=0.01
+beam=10
+retry_beam=40
+careful=false
 strip_pos=false
 textgrid_output=false
 file_enc='utf-8'
@@ -139,10 +142,12 @@ fi
 if [ $stage -le 4 ]; then
   # train a monophone system on 2k short utts
   steps/train_mono.sh --nj $nj --cmd "$train_cmd" \
+    --regular_beam $beam --retry_beam $retry_beam --careful $careful \
     --boost-silence $boost_silence \
     $data/train_${short}_short $data/lang $exp/mono
   # align next training subset
   steps/align_si.sh --nj $nj --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     --boost-silence $boost_silence \
     $data/train_$mid $data/lang $exp/mono $exp/mono_ali_$mid
 fi
@@ -150,20 +155,24 @@ fi
 if [ $stage -le 5 ]; then
   # train a first delta + delta-delta triphone system on a subset of 5k utterances
   steps/train_deltas.sh --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     --boost-silence $boost_silence \
     2000 10000 \
     $data/train_$mid $data/lang $exp/mono_ali_$mid $exp/tri1
   steps/align_si.sh --nj $nj --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     $data/train_$long $data/lang $exp/tri1 $exp/tri1_ali_$long
 fi
 
 if [ $stage -le 6 ]; then
   # train an LDA+MLLT system on 10k utts
   steps/train_lda_mllt.sh --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     --splice-opts "--left-context=3 --right-context=3" 2500 15000 \
     $data/train_$long $data/lang $exp/tri1_ali_$long $exp/tri2b
   # align a 10k utts subset using the tri2b model
   steps/align_si.sh  --nj $nj --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     --use-graphs true \
     $data/train_$long $data/lang $exp/tri2b $exp/tri2b_ali_$long
 fi
@@ -171,20 +180,24 @@ fi
 if [ $stage -le 7 ]; then
   # train tri3b, which is LDA+MLLT+SAT on 10k utts
   steps/train_sat.sh --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     2500 15000 \
     $data/train_$long $data/lang $exp/tri2b_ali_$long $exp/tri3b
   # align all train data using the tri3b model
   steps/align_fmllr.sh --nj $nj --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     $data/train $data/lang $exp/tri3b $exp/tri3b_ali_train
 fi
 
 if [ $stage -le 8 ]; then
   # train another LDA+MLLT+SAT system on the entire data set
   steps/train_sat.sh  --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     4200 40000 \
     $data/train $data/lang $exp/tri3b_ali_train $exp/tri4b
   # align all train data using the tri4b model
   steps/align_fmllr.sh --nj $nj --cmd "$train_cmd" \
+    --beam $beam --retry_beam $retry_beam --careful $careful \
     $data/train $data/lang $exp/tri4b $exp/tri4b_ali_train
   # check retried and failed utterances
   local/check_alignments.sh $exp/tri4b_ali_train $workdir $data/train
