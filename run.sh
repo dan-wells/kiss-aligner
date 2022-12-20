@@ -63,6 +63,8 @@ set -euo pipefail
 data=$workdir/data
 exp=$workdir/exp
 
+IFS=, read short mid long <<< "$splits"
+
 # TODO: some smart handling of input metadata filenames to name 
 # align/data/$part subdirectories
 #meta_base=${meta##*/}
@@ -121,7 +123,6 @@ if [ $stage -le 3 ]; then
   # about this in case there are repeated prompts across speakers).
   # There must be at least $long utterances in the full train data, otherwise
   # utils/split_data.sh will fail.
-  IFS=, read short mid long <<< "$splits"
   utils/subset_data_dir.sh --shortest $data/train $short $data/train_${short}_short
   utils/subset_data_dir.sh $data/train $mid $data/train_$mid
   utils/subset_data_dir.sh $data/train $long $data/train_$long
