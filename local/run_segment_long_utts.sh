@@ -13,6 +13,13 @@ Options:
   --stage 0                     # starting point for partial re-runs
   --segment-stage 0             # starting point for segmentation script
   --nj 4                        # number of parallel jobs
+  --min-segment-length 5        # minimum duration of segmented utterances in seconds
+  --max-segment-length 10       # maximum desired duration of segmented utterances
+  --hard-max-segment-length 15  # absolute maximum segment duration
+  --min-silence-length 0.2      # minimum duration of silences to split on
+  --max-silence-length 0.5      # maximum duration of silences within utterances
+  --uniform-segment-length 60   # duration of initial segments during alignment
+  --uniform-segment-overlap 10  # overlap duration for initial segments
   --mfcc-config conf/mfcc.conf  # config file for mfcc extraction
   --ctm-output false            # write word and phone CTM files for discovered segments
   --strip-pos true              # strip word position labels from phone CTM outputs
@@ -26,6 +33,13 @@ written to <workdir>/text"
 stage=0
 segment_stage=0
 nj=4
+min_segment_length=5
+max_segment_length=10
+hard_max_segment_length=15
+min_silence_length=0.2
+max_silence_length=0.5
+uniform_segment_length=60
+uniform_segment_overlap=10
 mfcc_config=conf/mfcc.conf
 ctm_output=false
 strip_pos=true
@@ -69,20 +83,24 @@ fi
 
 if [ $stage -le 2 ]; then
   # run initial segmentation
-  # TODO: make these and other options below configurable
   segmentation_extra_opts=(
-  --min-segment-length=5
-  --min-new-segment-length=5
-  --max-internal-silence-length=0.5
+  --min-segment-length=$min_segment_length
+  --min-new-segment-length=$min_segment_length
+  --max-internal-silence-length=$max_silence_length
   --max-internal-non-scored-length=0
   --max-edge-non-scored-length=0
   --unk-padding=0
   )
   steps/cleanup/segment_long_utterances.sh --cmd "$train_cmd" --nj $nj \
     --stage $segment_stage \
-    --max-segment-duration 60 --overlap-duration 10 --num-neighbors-to-search 1 \
-    --max-segment-length-for-splitting 10 --hard-max-segment-length 15 \
-    --min-split-point-duration 0.2 --min-silence-length-to-split-at 0.2 --min-non-scored-length-to-split-at 0.2 \
+    --max-segment-duration $uniform_segment_length \
+    --overlap-duration $uniform_segment_overlap \
+    --num-neighbors-to-search 1 \
+    --max-segment-length-for-splitting $max_segment_length \
+    --hard-max-segment-length $hard_max_segment_length \
+    --min-split-point-duration $min_silence_length \
+    --min-silence-length-to-split-at $min_silence_length \
+    --min-non-scored-length-to-split-at $min_silence_length \
     --segmentation-extra-opts $segmentation_extra_opts \
     $src_model $src_lang $data $workdir/data_seg $workdir/exp/1-segment
 fi
@@ -99,10 +117,10 @@ fi
 if [ $stage -le 4 ]; then
   # clean up initial segmentation
   segmentation_opts=(
-  --min-segment-length=5
-  --min-new-segment-length=5
-  --min-split-point-duration=0.2
-  --max-internal-silence-length=0.5
+  --min-segment-length=$min_segment_length
+  --min-new-segment-length=$min_segment_length
+  --min-split-point-duration=$min_silence_length
+  --max-internal-silence-length=$max_silence_length
   --max-internal-non-scored-length=0
   --max-edge-non-scored-length=0
   --unk-padding=0
