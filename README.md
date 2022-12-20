@@ -195,10 +195,6 @@ works even with approximate transcripts. For example, the additional notices in
 LibriVox recordings compared to the expected book text are simply ignored, and
 excluded from the final set of discovered segments.
 
-**TODO:** Target output lengths for segmented utterances are currently
-hard-coded to lie between 5--15s, intended for use as training data for
-text-to-speech systems. Make this configurable!
-
 ## Acknowledgments
 
 - Sample Kaldi recipes in `egs/{librispeech,wsj}` which provided the basic
