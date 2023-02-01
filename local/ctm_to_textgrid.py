@@ -52,7 +52,7 @@ def load_utt2dur(utt2dur_file):
     return utt2dur
 
 
-def make_tier(tier_name, alignment, utt_start, utt_end, sil):
+def make_tier(tier_name, alignment, utt_start, utt_end, sil, strip_pos):
     """Create TextGrid interval tier from aligned tokens
 
     Args:
@@ -61,6 +61,7 @@ def make_tier(tier_name, alignment, utt_start, utt_end, sil):
       utt_start: Time index of utterance start, in seconds
       utt_end: Time index of utterance end, in seconds
       sil: Symbol used for optional silence tokens
+      strip_pos: Flag to strip word-position labels from aligned symbols
 
     Returns:
       tier: tgt.core.IntervalTier object representing aligned tokens
@@ -88,14 +89,14 @@ def make_tier(tier_name, alignment, utt_start, utt_end, sil):
         else:
             # ms precision
             end = round(start + dur, 3)
-        if tier_name == 'phones':
+        if tier_name == 'phones' and strip_pos:
             text = re.sub(word_pos, '', text)
         intervals.append(Interval(start, end, text))
     tier.add_intervals(intervals)
     return tier
 
 
-def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL'):
+def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL', strip_pos=True):
     """Write TextGrid files with word- and phone-level alignments per utterance 
 
     Args:
@@ -105,6 +106,7 @@ def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL'):
       utt2dur: Dict mapping utterance IDs to durations
       tg_dir: Directory to write TextGrid files per utterance
       sil_phone: Phone symbol used for optional silence
+      strip_pos: Flag to strip word-position labels from aligned symbols
     """
     num_utts = len(utts_phone)
     assert len(utts_word) == num_utts
@@ -117,9 +119,9 @@ def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL'):
         # SPN in phones tier
         tgf = os.path.join(tg_dir, f"{utt}.TextGrid")
         textgrid = TextGrid(tgf)
-        word_tier = make_tier("words", utts_word[utt], utt_start, utt_end, '<eps>')
+        word_tier = make_tier("words", utts_word[utt], utt_start, utt_end, '<eps>', strip_pos)
         textgrid.add_tier(word_tier)
-        phone_tier = make_tier("phones", utts_phone[utt], utt_start, utt_end, sil_phone)
+        phone_tier = make_tier("phones", utts_phone[utt], utt_start, utt_end, sil_phone, strip_pos)
         textgrid.add_tier(phone_tier)
         tgt.io.write_to_file(textgrid, tgf, format="long")
 
@@ -144,6 +146,8 @@ if __name__ == '__main__':
         help="Directory to write TextGrid files per utterance")
     parser.add_argument('--sil', type=str, default='SIL',
         help="Optional silence phone symbol")
+    parser.add_argument('--strip-pos', action='store_true',
+        help="Strip word position markers from phone CTM entries")
     parser.add_argument('--workdir', type=str, default='./align',
         help="Working directory for alignment")
     parser.add_argument('--datadir', type=str, default='./align/data/train',
@@ -158,4 +162,4 @@ if __name__ == '__main__':
     utt2dur = load_utt2dur(os.path.join(args.datadir, 'utt2dur'))
 
     os.makedirs(args.tg_dir, exist_ok=True)
-    write_textgrids(utts_word, utts_phone, utt2dur, args.tg_dir, args.sil)
+    write_textgrids(utts_word, utts_phone, utt2dur, args.tg_dir, args.sil, args.strip_pos)
