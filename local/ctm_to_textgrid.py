@@ -111,7 +111,6 @@ def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL', str
     """
     num_utts = len(utts_phone)
     assert len(utts_word) == num_utts
-    log_interval = int(num_utts / 20) + 1
     for i, utt in enumerate(utts_phone, 1):
         utt_start = 0
         utt_end = utt2dur[utt]
@@ -127,12 +126,11 @@ def write_textgrids(utts_word, utts_phone, utt2dur, tg_dir, sil_phone='SIL', str
         tgt.io.write_to_file(textgrid, tgf, format="long")
 
         # progress bar
-        if not (i - 1) % log_interval or i == num_utts:
-            log_line_end = '\n' if i == num_utts else '\r'
-            n_done = int(i / num_utts * 20)
-            print("Creating TextGrids [{}{}] {}/{}".format(
-                  n_done * '#', (20 - n_done) * '-', i, num_utts),
-                  end=log_line_end)
+        log_line_end = '\n' if i == num_utts else '\r'
+        n_done = int(i / num_utts * 40)
+        print("Creating TextGrids [{}{}] {}/{}".format(
+              n_done * '#', (40 - n_done) * '-', i, num_utts),
+              end=log_line_end)
 
 
 if __name__ == '__main__':
