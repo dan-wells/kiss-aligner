@@ -135,7 +135,7 @@ if [ $stage -le 4 ]; then
   steps/cleanup/clean_and_segment_data.sh --cmd $train_cmd --nj $nj \
     --segmentation-opts $segmentation_opts \
     $workdir/data_seg $src_lang $workdir/exp/2-align $workdir/exp/3-cleanup $workdir/data_seg_clean
-  cp $workdir/data_seg_clean/text $workdir/text
+  cp $workdir/data_seg_clean/text $workdir/text_all
 fi
 
 if [ $stage -le 5 ]; then
