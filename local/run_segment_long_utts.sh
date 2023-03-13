@@ -20,6 +20,9 @@ Options:
   --max-silence-length 0.5      # maximum duration of silences within utterances
   --uniform-segment-length 60   # duration of initial segments during alignment
   --uniform-segment-overlap 10  # overlap duration for initial segments
+  --beam 10                     # initial beam width for final alignment
+  --retry-beam 40               # retry beam width for failed alignments (0 to disable)
+  --careful false               # enable careful alignment to better detect failures
   --mfcc-config conf/mfcc.conf  # config file for mfcc extraction
   --ctm-output false            # write word and phone CTM files for discovered segments
   --strip-pos true              # strip word position labels from phone CTM outputs
@@ -40,6 +43,9 @@ min_silence_length=0.2
 max_silence_length=0.5
 uniform_segment_length=60
 uniform_segment_overlap=10
+beam=10
+retry_beam=40
+careful=false
 mfcc_config=conf/mfcc.conf
 ctm_output=false
 strip_pos=true
@@ -101,6 +107,7 @@ if [ $stage -le 2 ]; then
     --min-split-point-duration $min_silence_length \
     --min-silence-length-to-split-at $min_silence_length \
     --min-non-scored-length-to-split-at $min_silence_length \
+    --max-deleted-words-kept-when-merging 0 \
     --segmentation-extra-opts $segmentation_extra_opts \
     $src_model $src_lang $data $workdir/data_seg $workdir/exp/1-segment
 fi
@@ -149,6 +156,7 @@ if [ $stage -le 6 ]; then
   # re-align cleaned segments and summarize discovered data
   utils/data/get_utt2dur.sh $workdir/data_seg_clean
   steps/align_fmllr.sh --cmd $train_cmd --nj $nj \
+    --beam $beam --retry-beam $retry_beam --careful $careful \
     $workdir/data_seg_clean $src_lang $src_model $workdir/exp/4-align_clean
   local/check_alignments.sh $workdir/exp/4-align_clean $workdir $workdir/data_seg_clean
   # TODO: collect statistics over discovered segment lengths
