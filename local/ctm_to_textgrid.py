@@ -88,6 +88,7 @@ def make_tier(tier_name, alignment, utt_start, utt_end, sil, strip_pos):
             end = utt_end
         else:
             # ms precision
+            start = round(start, 3)
             end = round(start + dur, 3)
         if tier_name == 'phones' and strip_pos:
             text = re.sub(word_pos, '', text)
