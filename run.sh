@@ -81,12 +81,12 @@ IFS=, read short mid long <<< "$splits"
 if [ $stage -le 0 ]; then
   # prepare data files from metadata input
   [ $spkr_in_wav == true ] && spkr_in_wav="--spkr-in-wav" || spkr_in_wav=""
-  [ -n $meta ] && local/prep_data.py \
+  [ -n "$meta" ] && local/prep_data.py \
     $meta $audio_root --workdir $workdir \
     --resample $resample --resample-method $resample_method \
     $spkr_in_wav --spkr-sep "$spkr_sep" --field-sep "$meta_field_sep"
   # prepare dictionary files from lexicon input
-  [ -n $lex ] && local/prep_dict.py \
+  [ -n "$lex" ] && local/prep_dict.py \
     $lex --workdir $workdir --oov ${oov/,/ } \
     --field-sep "$lex_field_sep"
 fi

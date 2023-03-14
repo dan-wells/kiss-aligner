@@ -11,7 +11,6 @@ Args:
   src_lang   # lang/ directory matching <src_model>
 Options:
   --stage 0                     # starting point for partial re-runs
-  --segment-stage 0             # starting point for segmentation script
   --nj 4                        # number of parallel jobs
   --min-segment-length 5        # minimum duration of segmented utterances in seconds
   --max-segment-length 10       # maximum desired duration of segmented utterances
@@ -38,7 +37,6 @@ written to <workdir>/text"
 
 # begin configuration section
 stage=0
-segment_stage=0
 nj=4
 min_segment_length=5
 max_segment_length=10
