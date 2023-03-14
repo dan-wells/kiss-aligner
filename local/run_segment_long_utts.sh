@@ -27,6 +27,8 @@ Options:
   --ctm-output false            # write word and phone CTM files for discovered segments
   --strip-pos true              # strip word position labels from phone CTM outputs
   --textgrid-output false       # also write alignments to Praat TextGrid format
+  --textgrid-punc false         # restore punctuation symbols in TextGrids
+  --file-enc 'utf-8'            # text file encoding
   --exit-on-oov false           # stop early if OOV items found in transcripts
 
 Split wavs will be output to <workdir>/wavs and discovered transcripts
@@ -50,6 +52,8 @@ mfcc_config=conf/mfcc.conf
 ctm_output=false
 strip_pos=true
 textgrid_output=false
+textgrid_punc=false
+file_enc='utf-8'
 exit_on_oov=false
 # end configuration section
 
@@ -69,7 +73,7 @@ if [ $stage -le 0 ]; then
   # note: segmentation will still work if there are OOVs, but discovered
   # segments will be cut around them
   [ $exit_on_oov = true ] && warn_on_oov="--warn-on-oov" || warn_on_oov=""
-  local/check_oov.py --workdir $workdir \
+  local/check_oov.py --workdir $workdir --file-enc $file_enc \
     $src_lang/words.txt $data/text \
     $warn_on_oov || (echo "Check OOV files: $workdir/oov_{words,utts}.txt"; exit 1)
 fi
@@ -172,13 +176,16 @@ if [ $stage -le 7 ]; then
       $src_lang $workdir/exp/4-align_clean $workdir/data_seg_clean
     # split CTM files for final per-utterance outputs
     [ $strip_pos == true ] && strip_pos="--strip-pos" || strip_pos=""
-    local/split_ctm.py $strip_pos $workdir/data_seg_clean/ctm $workdir/word
-    local/split_ctm.py $strip_pos $workdir/data_seg_clean/ctm.phone $workdir/phone
+    local/split_ctm.py $strip_pos --file-enc $file_enc \
+      $workdir/data_seg_clean/ctm $workdir/word
+    local/split_ctm.py $strip_pos --file-enc $file_enc \
+      $workdir/data_seg_clean/ctm.phone $workdir/phone
   fi
   if [ $textgrid_output == true ]; then
     # convert alignments to Praat TextGrid format
+    [ $textgrid_punc == true ] && textgrid_punc="--punc" || textgrid_punc=""
     local/ctm_to_textgrid.py \
-      $workdir/data_seg_clean/ctm $workdir/data_seg_clean/ctm.phone $workdir/TextGrid \
-      --workdir $workdir --datadir $workdir/data_seg_clean
+      --datadir $workdir/data_seg_clean --file-enc $file_enc $strip_pos $textgrid_punc \
+      $workdir/data_seg_clean/ctm $workdir/data_seg_clean/ctm.phone $workdir/TextGrid
   fi
 fi

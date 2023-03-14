@@ -25,6 +25,7 @@ retry_beam=40
 careful=false
 strip_pos=false
 textgrid_output=false
+textgrid_punc=false
 file_enc='utf-8'
 stage=0
 nj=4
@@ -56,6 +57,7 @@ Options:
   --careful false               # enable careful alignment to better detect failures
   --strip-pos false             # strip word position labels from phone CTM outputs
   --textgrid-output false       # also write alignments to Praat TextGrid format
+  --textgrid-punc false         # restore punctuation symbols in TextGrids
   --file-enc 'utf-8'            # text file encoding
   --stage 0                     # starting point for partial re-runs
   --nj 4                        # number of parallel jobs"
@@ -223,8 +225,12 @@ if [ $stage -le 10 ]; then
     $exp/tri4b_ali_train/ctm $workdir/word
   local/split_ctm.py $strip_pos --file-enc $file_enc \
     $exp/tri4b_ali_train/ctm.phone $workdir/phone
+
   # convert alignments to Praat TextGrid format
-  [ $textgrid_output == true ] && local/ctm_to_textgrid.py \
-    --workdir $workdir --datadir $data/train $strip_pos --file-enc $file_enc \
-    $exp/tri4b_ali_train/ctm $exp/tri4b_ali_train/ctm.phone $workdir/TextGrid
+  if [ $textgrid_output == true ]; then
+    [ $textgrid_punc == true ] && textgrid_punc="--punc" || textgrid_punc=""
+    local/ctm_to_textgrid.py \
+      --datadir $data/train --file-enc $file_enc $strip_pos $textgrid_punc \
+      $exp/tri4b_ali_train/ctm $exp/tri4b_ali_train/ctm.phone $workdir/TextGrid
+  fi
 fi
