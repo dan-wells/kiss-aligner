@@ -95,7 +95,7 @@ fi
 
 if [ $stage -le 2 ]; then
   # run initial segmentation
-  [ -n "$ctm_edits_nsw" ] && ctm_edits_nsw_opt="--ctm-edits-nsw $ctm_edits_nsw" || ctm_edits_nsw_opt=""
+  [ -n "$ctm_edits_nsw" ] && ctm_edits_nsw="--ctm-edits-nsw $ctm_edits_nsw"
   segmentation_extra_opts=(
   --min-segment-length=$min_segment_length
   --min-new-segment-length=$min_segment_length
@@ -116,7 +116,7 @@ if [ $stage -le 2 ]; then
     --max-deleted-words-kept-when-merging 0 \
     --allow-repetitions $allow_repetitions \
     --segmentation-extra-opts $segmentation_extra_opts \
-    $ctm_edits_nsw_opt \
+    $ctm_edits_nsw \
     $src_model $src_lang $data $workdir/data_seg $workdir/exp/1-segment
 fi
 
