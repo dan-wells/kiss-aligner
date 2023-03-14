@@ -20,6 +20,8 @@ Options:
   --max-silence-length 0.5      # maximum duration of silences within utterances
   --uniform-segment-length 60   # duration of initial segments during alignment
   --uniform-segment-overlap 10  # overlap duration for initial segments
+  --allow-repetitions false     # modify reference transcript to account for dysfluencies
+  --ctm-edits-nsw ''            # file with non-scored words for possible reference edits
   --beam 10                     # initial beam width for final alignment
   --retry-beam 40               # retry beam width for failed alignments (0 to disable)
   --careful false               # enable careful alignment to better detect failures
@@ -45,6 +47,8 @@ min_silence_length=0.2
 max_silence_length=0.5
 uniform_segment_length=60
 uniform_segment_overlap=10
+allow_repetitions=false
+ctm_edits_nsw=
 beam=10
 retry_beam=40
 careful=false
@@ -93,6 +97,7 @@ fi
 
 if [ $stage -le 2 ]; then
   # run initial segmentation
+  [ -n "$ctm_edits_nsw" ] && ctm_edits_nsw_opt="--ctm-edits-nsw $ctm_edits_nsw" || ctm_edits_nsw_opt=""
   segmentation_extra_opts=(
   --min-segment-length=$min_segment_length
   --min-new-segment-length=$min_segment_length
@@ -101,8 +106,7 @@ if [ $stage -le 2 ]; then
   --max-edge-non-scored-length=0
   --unk-padding=0
   )
-  steps/cleanup/segment_long_utterances.sh --cmd "$train_cmd" --nj $nj \
-    --stage $segment_stage \
+  local/segment_long_utterances.sh --cmd "$train_cmd" --nj $nj \
     --max-segment-duration $uniform_segment_length \
     --overlap-duration $uniform_segment_overlap \
     --num-neighbors-to-search 1 \
@@ -112,7 +116,9 @@ if [ $stage -le 2 ]; then
     --min-silence-length-to-split-at $min_silence_length \
     --min-non-scored-length-to-split-at $min_silence_length \
     --max-deleted-words-kept-when-merging 0 \
+    --allow-repetitions $allow_repetitions \
     --segmentation-extra-opts $segmentation_extra_opts \
+    $ctm_edits_nsw_opt \
     $src_model $src_lang $data $workdir/data_seg $workdir/exp/1-segment
 fi
 
