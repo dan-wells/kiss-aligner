@@ -1,0 +1,6 @@
+beautifulsoup4
+dtw-python
+#praatio
+pydub
+requests
+tqdm
