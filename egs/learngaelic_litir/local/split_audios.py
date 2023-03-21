@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('audio_in', help='Directory containing long input audio files')
     parser.add_argument('audio_out', help='Directory to write output segmented audio')
-    parser.add_argument('--nj', default=8, help='Number of parallel processes to run')
+    parser.add_argument('--nj', type=int, default=8, help='Number of parallel processes to run')
     args = parser.parse_args()
 
     audio_files = sorted(glob(os.path.join(args.audio_in, '*.wav')))
