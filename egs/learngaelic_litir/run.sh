@@ -5,7 +5,7 @@ set -euo pipefail
 LITIR=egs/learngaelic_litir
 
 # Grab long audio files and transcripts
-python3 $LITIR/local/scrape_transcripts_and_audios.py \
+$LITIR/local/scrape_transcripts_and_audios.py \
   --doc-range 1 1216 $LITIR/data/text_long $LITIR/data/ogg_long
 
 # Convert audio to consistent WAV format
@@ -18,22 +18,22 @@ done
 
 # Split long audio files on silences at least 1.5s long
 # NB. this is very slow! ~5 hours for all 1216 recordings
-python3 $LITIR/local/split_audios.py --nj 8 \
+$LITIR/local/split_audios.py --nj 8 \
   $LITIR/data/wav_long $LITIR/data/wav_chunked
 
 # Split long text transcripts on phrase-final punctuation
 # NB. before text normalisation because closing smart quotes can indicate sentence ends
 mkdir -p $LITIR/data/text_chunked
-python3 $LITIR/local/split_and_number_sentences.py \
+$LITIR/local/split_and_number_sentences.py \
   $LITIR/data/text_long $LITIR/data/text_chunked
 
 # Approximately align audio and text chunks based on cumulative durations
 mkdir -p $LITIR/align_dtw/data/train
-python3 $LITIR/local/dtw_audio_and_text_lens.py \
+$LITIR/local/dtw_audio_and_text_lens.py \
   $LITIR/data/wav_chunked $LITIR/data/text_chunked $LITIR/align_dtw/data/train
 
 # Normalize text transcripts and prepare other data files
-python3 $LITIR/local/normalize_text.py \
+$LITIR/local/normalize_text.py \
   $LITIR/align_dtw/data/train/text_raw $LITIR/align_dtw/data/train/text
 cut -d' ' -f1 $LITIR/align_dtw/data/train/text \
   | sed 's/\(.*\)/\1 \1/' > $LITIR/align_dtw/data/train/spk2utt
@@ -41,7 +41,7 @@ cp $LITIR/align_dtw/data/train/spk2utt $LITIR/align_dtw/data/train/utt2spk
 
 # NB. setting up kaldi lang files needs a bit more care, so we ship final
 # versions after modifying the output of this script
-#python3 $LITIR/local/make_char_lex.py \
+#$LITIR/local/make_char_lex.py \
 #  $LITIR/align_dtw/data/train/text $LITIR/align_dtw/data/local/dict
 
 # Run initial alignment
@@ -62,7 +62,7 @@ for text in $LITIR/data/text_long/*.txt; do
   oneline=$(paste -sd' ' $text)
   echo "$utt $oneline" >> $LITIR/segment_utts/data/long/text_long_raw
 done
-python3 $LITIR/local/normalize_text.py \
+$LITIR/local/normalize_text.py \
   $LITIR/segment_utts/data/long/text_long_raw $LITIR/segment_utts/data/long/text
 
 cut -d' ' -f1 $LITIR/segment_utts/data/long/text \
