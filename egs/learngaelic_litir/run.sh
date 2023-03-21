@@ -16,7 +16,7 @@ done
 
 # Split long audio files on silences at least 1.5s long
 # NB. this is very slow! ~5 hours for all 1216 recordings
-python $LITIR/local/split_audios.py \
+python3 $LITIR/local/split_audios.py --nj 8 \
   $LITIR/data/wav_long $LITIR/data/wav_chunked
 
 # Split long text transcripts on phrase-final punctuation
