@@ -6,7 +6,7 @@ import shutil
 import wave
 from collections import defaultdict
 
-#from tqdm import tqdm
+from tqdm import tqdm
 
 
 def read_segments(segments_file):
@@ -41,7 +41,7 @@ def set_audio_params(wavf, nchannels, sampwidth, framerate):
 
 
 def split_audios(segments, wav_scp, wav_out):
-    #pbar = tqdm(desc='Extracting audio segments', total=sum(len(i) for i in segments.values()))
+    pbar = tqdm(desc='Extracting audio segments', total=sum(len(i) for i in segments.values()))
     utt_wavs = read_scp(wav_scp)
     for src_audio, wav_path in utt_wavs.items():
         if src_audio not in segments:
@@ -56,8 +56,8 @@ def split_audios(segments, wav_scp, wav_out):
                 with wave.open(audio_seg, 'wb') as segf:
                     set_audio_params(segf, c, b, r)
                     segf.writeframes(wavf_seg)
-    #            pbar.update(1)
-    #pbar.close()
+                pbar.update(1)
+    pbar.close()
 
 
 if __name__ == '__main__':
