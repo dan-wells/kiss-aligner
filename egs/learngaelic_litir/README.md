@@ -14,8 +14,8 @@ The steps are as follows:
 - Train an initial character-based acoustic model on these approximate
   text-audio pairs
 - Decode larger audio chunks using initial acoustic model and align hypotheses
-  against reference transcripts- Split recordings and text according to
-  discovered segments
+  against reference transcripts
+- Split recordings and text according to discovered segments
 
 Assuming you've set everything up for the main KISS recipe and installed all
 Python requirements, you should be able to replicate this process by calling
@@ -36,7 +36,7 @@ to the `segments` file, so skipping the intermediate alignment steps.
 The following snippet should leave you with `text` and `segments` files in the
 current directory, a new directory `wavs/` containing segmented audio files,
 and temporary files representing the unsegmented recordings under
-`data/{text_long,ogg_long,wav_long,wav_long.scp}`.
+`data/{text_long/,ogg_long/,wav_long/,wav_long.scp}`.
 
 ```sh
 local/scrape_transcripts_and_audios.py \
