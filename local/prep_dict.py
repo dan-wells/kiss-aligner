@@ -2,6 +2,7 @@
 
 import argparse
 import os
+from collections import defaultdict
 
 
 def process_lexicon(lexicon, field_sep=' '):
@@ -12,16 +13,16 @@ def process_lexicon(lexicon, field_sep=' '):
       field_sep: Character separating words and pronunciations in lexicon
 
     Returns:
-      lex: Dict mapping words to phone strings
+      lex: Dict mapping words to sets of phone strings
       phones: Phone set
     """
-    lex = {}
+    lex = defaultdict(set)  # account for multiple pronunciations
     phones = set()
     with open(lexicon) as inf:
         for line in inf:
-            word, *pron = line.strip().split(field_sep)
-            lex[word] = ' '.join(pron)
-            phones.update(pron)
+            word, pron = line.strip().split(field_sep, maxsplit=1)
+            lex[word].update([pron])
+            phones.update(pron.split(' '))
     return lex, phones
 
 
@@ -29,15 +30,16 @@ def write_lexicon(lex, lexdir, oov):
     """Write lexicon file with added OOV entry
 
     Args:
-      lex: Dict mapping words to phone strings
+      lex: Dict mapping words to sets of phone strings
       lexdir: Output directory
       oov: List with token and phone symbol for out-of-vocabulary items
     """
     entry_template = "{} {}\n"
     with open(os.path.join(lexdir, 'lexicon.txt'), 'w') as outf:
         outf.write(entry_template.format(*oov))
-        for word, pron in sorted(lex.items()):
-            outf.write(entry_template.format(word, pron))
+        for word, pron_set in sorted(lex.items()):
+            for pron in pron_set:
+                outf.write(entry_template.format(word, pron))
 
 
 def write_phones(phones, lexdir):
